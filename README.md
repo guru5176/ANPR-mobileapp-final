@@ -140,15 +140,3 @@ MotoVaultANPR/
 gradle assembleDebug
 gradle :app:testDebugUnitTest
 ```
-
-### 4. Exporting / Pushing to GitHub
-- In **Google AI Studio**, click the **GitHub / Export** icon in the top-right toolbar (or open the **Settings** menu) to connect your GitHub account and push this repository directly to a new or existing GitHub repo.
-- If exporting as a ZIP to push from your local machine:
-  ```bash
-  git init
-  git add .
-  git commit -m "Initial commit: MotoVault ANPR Two-Wheeler Parking Management App"
-  git branch -M main
-  git remote add origin https://github.com/<your-username>/<your-repo>.git
-  git push -u origin main
-  ```
