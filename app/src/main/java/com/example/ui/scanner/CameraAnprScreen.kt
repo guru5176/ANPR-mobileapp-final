@@ -208,10 +208,10 @@ fun CameraAnprScreen(
         modifier = Modifier
             .fillMaxSize()
             .verticalScroll(rememberScrollState())
-            .padding(horizontal = 16.dp, vertical = 12.dp),
-        verticalArrangement = Arrangement.spacedBy(12.dp)
+            .padding(horizontal = 16.dp, vertical = 14.dp),
+        verticalArrangement = Arrangement.spacedBy(16.dp)
     ) {
-        // 1. Segmented Entry / Exit Scan Mode Toggle Bar
+        // 1. Clean Single-Row Segmented Entry / Exit Scan Mode Toggle
         ScanModeToggleHeader(
             scanMode = scanMode,
             insideCount = insideVehicles.size,
@@ -219,85 +219,18 @@ fun CameraAnprScreen(
             onToggleMode = { viewModel.toggleScanMode() }
         )
 
-        // Quick-Tap Strip of Parked Vehicles when in EXIT Mode
-        AnimatedVisibility(visible = scanMode == ScanMode.EXIT && insideVehicles.isNotEmpty()) {
-            Card(
-                modifier = Modifier.fillMaxWidth(),
-                shape = RoundedCornerShape(12.dp),
-                colors = CardDefaults.cardColors(containerColor = ElevatedSlate),
-                border = BorderStroke(1.dp, CashEmerald.copy(alpha = 0.35f))
-            ) {
-                Column(
-                    modifier = Modifier
-                        .fillMaxWidth()
-                        .padding(horizontal = 12.dp, vertical = 10.dp),
-                    verticalArrangement = Arrangement.spacedBy(6.dp)
-                ) {
-                    Row(
-                        modifier = Modifier.fillMaxWidth(),
-                        horizontalArrangement = Arrangement.SpaceBetween,
-                        verticalAlignment = Alignment.CenterVertically
-                    ) {
-                        Text(
-                            text = tr(
-                                lang,
-                                "Parked Inside (${insideVehicles.size}) — Tap plate or scan to exit",
-                                "உள்ளே உள்ளவை (${insideVehicles.size}) — வெளியேற்ற வண்டி எண்ணைத் தொடவும்"
-                            ),
-                            style = MaterialTheme.typography.bodyMedium,
-                            color = CashEmerald
-                        )
-                    }
-                    Row(
-                        modifier = Modifier
-                            .fillMaxWidth()
-                            .horizontalScroll(rememberScrollState()),
-                        horizontalArrangement = Arrangement.spacedBy(8.dp)
-                    ) {
-                        insideVehicles.forEach { parked ->
-                            val isSelected = plateInput == parked.plateNumber
-                            FilterChip(
-                                selected = isSelected,
-                                onClick = { viewModel.onPlateInputChanged(parked.plateNumber) },
-                                label = {
-                                    Text(
-                                        text = parked.plateNumber,
-                                        fontFamily = JetBrainsMonoFontFamily,
-                                        style = MaterialTheme.typography.bodyMedium,
-                                        fontWeight = FontWeight.Medium
-                                    )
-                                },
-                                colors = FilterChipDefaults.filterChipColors(
-                                    selectedContainerColor = CashEmerald,
-                                    selectedLabelColor = Color.Black,
-                                    containerColor = AsphaltObsidian,
-                                    labelColor = Color.White
-                                ),
-                                border = FilterChipDefaults.filterChipBorder(
-                                    enabled = true,
-                                    selected = isSelected,
-                                    borderColor = CashEmerald.copy(alpha = 0.4f)
-                                ),
-                                modifier = Modifier.testTag("quick_exit_chip_${parked.plateNumber}")
-                            )
-                        }
-                    }
-                }
-            }
-        }
-
-        // 2. Live CameraX Viewfinder + Bounding Box Overlay + Smart Torch Bar
+        // 2. Live CameraX Viewfinder + Minimal Floating Controls
         Card(
             modifier = Modifier.fillMaxWidth(),
-            shape = RoundedCornerShape(14.dp),
-            border = BorderStroke(1.dp, modeAccentColor.copy(alpha = 0.5f)),
+            shape = RoundedCornerShape(16.dp),
+            border = BorderStroke(1.dp, modeAccentColor.copy(alpha = 0.45f)),
             colors = CardDefaults.cardColors(containerColor = ElevatedSlate)
         ) {
             Column {
                 Box(
                     modifier = Modifier
                         .fillMaxWidth()
-                        .height(210.dp)
+                        .height(195.dp)
                         .background(Color.Black)
                 ) {
                     if (hasCameraPermission) {
@@ -315,7 +248,7 @@ fun CameraAnprScreen(
                         Column(
                             modifier = Modifier
                                 .fillMaxSize()
-                                .padding(20.dp),
+                                .padding(24.dp),
                             horizontalAlignment = Alignment.CenterHorizontally,
                             verticalArrangement = Arrangement.Center
                         ) {
@@ -325,18 +258,18 @@ fun CameraAnprScreen(
                                 tint = modeAccentColor,
                                 modifier = Modifier.size(32.dp)
                             )
-                            Spacer(modifier = Modifier.height(6.dp))
+                            Spacer(modifier = Modifier.height(8.dp))
                             Text(
                                 text = tr(
                                     lang,
-                                    "Camera access enables live ANPR scanning, auto-torch, and timestamped entry photos.",
-                                    "வாகன எண்ணை ஸ்கேன் செய்யவும் புகைப்படம் எடுக்கவும் கேமரா அனுமதி தேவை."
+                                    "Allow camera for live plate scan & entry photo proof",
+                                    "வாகன எண்ணை ஸ்கேன் செய்ய கேமரா அனுமதி தேவை"
                                 ),
                                 style = MaterialTheme.typography.bodyMedium,
                                 color = Color.White,
                                 textAlign = TextAlign.Center
                             )
-                            Spacer(modifier = Modifier.height(10.dp))
+                            Spacer(modifier = Modifier.height(12.dp))
                             Button(
                                 onClick = { cameraPermissionLauncher.launch(Manifest.permission.CAMERA) },
                                 colors = ButtonDefaults.buttonColors(
@@ -353,72 +286,93 @@ fun CameraAnprScreen(
                     // Bounding-Box Reticle Overlay
                     AnprBoundingBoxOverlay(
                         normalizedBox = lastDetection?.boundingBoxNormalized
-                            ?: RectF(0.12f, 0.32f, 0.88f, 0.68f),
+                            ?: RectF(0.14f, 0.30f, 0.86f, 0.70f),
                         detectedPlate = lastDetection?.normalizedPlate,
                         accentColor = modeAccentColor
                     )
 
-                    // Top Scanner Telemetry Overlay (Minimal Luma + Torch Controls)
+                    // Minimal Floating Top Overlay Pills
                     Row(
                         modifier = Modifier
                             .fillMaxWidth()
                             .align(Alignment.TopCenter)
-                            .background(Color.Black.copy(alpha = 0.62f))
-                            .padding(horizontal = 12.dp, vertical = 6.dp),
+                            .padding(horizontal = 12.dp, vertical = 10.dp),
                         horizontalArrangement = Arrangement.SpaceBetween,
                         verticalAlignment = Alignment.CenterVertically
                     ) {
-                        Column {
-                            Text(
-                                text = if (scanMode == ScanMode.ENTRY) {
-                                    tr(lang, "Entry Scan • Live ANPR", "உள்ளே (Entry) ஸ்கேன் • ANPR")
-                                } else {
-                                    tr(lang, "Exit Scan • Live ANPR", "வெளியே (Exit) ஸ்கேன் • ANPR")
-                                },
-                                style = MaterialTheme.typography.labelLarge,
-                                color = modeAccentColor
-                            )
-                            Text(
-                                text = "${tr(lang, "Light", "வெளிச்சம்")}: ${currentLuminosity.toInt()}/255 " +
-                                    if (currentLuminosity < rateConfig.lowLightThreshold) {
-                                        tr(lang, "(Low light)", "(குறைந்த வெளிச்சம்)")
+                        // Left Floating Pill: Scan Mode + Ambient Light
+                        Surface(
+                            color = Color.Black.copy(alpha = 0.65f),
+                            shape = RoundedCornerShape(20.dp),
+                            border = BorderStroke(1.dp, Color.White.copy(alpha = 0.14f))
+                        ) {
+                            Row(
+                                verticalAlignment = Alignment.CenterVertically,
+                                modifier = Modifier.padding(horizontal = 10.dp, vertical = 5.dp)
+                            ) {
+                                Box(
+                                    modifier = Modifier
+                                        .size(7.dp)
+                                        .background(modeAccentColor, CircleShape)
+                                )
+                                Spacer(modifier = Modifier.width(6.dp))
+                                Text(
+                                    text = if (currentLuminosity < rateConfig.lowLightThreshold) {
+                                        tr(lang, "ANPR • Low Light", "ANPR • குறைந்த வெளிச்சம்")
                                     } else {
-                                        tr(lang, "(Normal)", "(சாதாரண வெளிச்சம்)")
+                                        tr(lang, "Live ANPR", "நேரடி ANPR")
                                     },
-                                style = MaterialTheme.typography.labelMedium,
-                                color = MutedSteel
-                            )
+                                    style = MaterialTheme.typography.labelMedium,
+                                    color = Color.White
+                                )
+                            }
                         }
 
+                        // Right Floating Controls: Compact Auto-Torch Chip + Manual Torch Button
                         Row(
                             verticalAlignment = Alignment.CenterVertically,
                             horizontalArrangement = Arrangement.spacedBy(8.dp)
                         ) {
-                            Row(verticalAlignment = Alignment.CenterVertically) {
+                            Surface(
+                                color = if (autoTorchEnabled) {
+                                    modeAccentColor.copy(alpha = 0.22f)
+                                } else {
+                                    Color.Black.copy(alpha = 0.65f)
+                                },
+                                shape = RoundedCornerShape(20.dp),
+                                border = BorderStroke(
+                                    1.dp,
+                                    if (autoTorchEnabled) modeAccentColor else Color.White.copy(alpha = 0.2f)
+                                ),
+                                modifier = Modifier
+                                    .clip(RoundedCornerShape(20.dp))
+                                    .clickable { viewModel.setAutoTorchEnabled(!autoTorchEnabled) }
+                                    .testTag("auto_torch_switch")
+                            ) {
                                 Text(
-                                    text = tr(lang, "Auto", "தானியங்கி"),
+                                    text = if (autoTorchEnabled) {
+                                        tr(lang, "Auto Light: ON", "தானியங்கி: ஆன்")
+                                    } else {
+                                        tr(lang, "Auto Light: OFF", "தானியங்கி: ஆஃப்")
+                                    },
                                     style = MaterialTheme.typography.labelMedium,
-                                    color = MutedSteel
-                                )
-                                Spacer(modifier = Modifier.width(4.dp))
-                                Switch(
-                                    checked = autoTorchEnabled,
-                                    onCheckedChange = { viewModel.setAutoTorchEnabled(it) },
-                                    colors = SwitchDefaults.colors(
-                                        checkedThumbColor = Color.Black,
-                                        checkedTrackColor = modeAccentColor
-                                    ),
-                                    modifier = Modifier.testTag("auto_torch_switch")
+                                    color = if (autoTorchEnabled) modeAccentColor else MutedSteel,
+                                    modifier = Modifier.padding(horizontal = 10.dp, vertical = 5.dp)
                                 )
                             }
 
                             IconButton(
                                 onClick = { viewModel.toggleTorchManual() },
                                 modifier = Modifier
-                                    .size(40.dp)
+                                    .size(36.dp)
                                     .background(
-                                        if (isTorchOn) SafetyAmber else ElevatedSlate,
+                                        if (isTorchOn) SafetyAmber else Color.Black.copy(alpha = 0.65f),
                                         shape = CircleShape
+                                    )
+                                    .border(
+                                        1.dp,
+                                        if (isTorchOn) SafetyAmber else Color.White.copy(alpha = 0.2f),
+                                        CircleShape
                                     )
                                     .testTag("manual_torch_toggle_button")
                             ) {
@@ -426,19 +380,19 @@ fun CameraAnprScreen(
                                     imageVector = if (isTorchOn) Icons.Default.FlashOn else Icons.Default.FlashOff,
                                     contentDescription = "Toggle Flashlight Torch",
                                     tint = if (isTorchOn) Color.Black else Color.White,
-                                    modifier = Modifier.size(18.dp)
+                                    modifier = Modifier.size(17.dp)
                                 )
                             }
                         }
                     }
                 }
 
-                // Secondary AI Vision & Photo Helpers
+                // Clean Action Strip for Photo OCR & AI Vision Fallback
                 Row(
                     modifier = Modifier
                         .fillMaxWidth()
-                        .padding(horizontal = 12.dp, vertical = 8.dp),
-                    horizontalArrangement = Arrangement.spacedBy(8.dp),
+                        .padding(horizontal = 12.dp, vertical = 10.dp),
+                    horizontalArrangement = Arrangement.spacedBy(10.dp),
                     verticalAlignment = Alignment.CenterVertically
                 ) {
                     OutlinedButton(
@@ -449,8 +403,9 @@ fun CameraAnprScreen(
                         },
                         modifier = Modifier
                             .weight(1f)
-                            .height(44.dp)
+                            .height(42.dp)
                             .testTag("upload_plate_photo_button"),
+                        shape = RoundedCornerShape(10.dp),
                         border = BorderStroke(1.dp, CardSlateBorder),
                         colors = ButtonDefaults.outlinedButtonColors(contentColor = Color.White)
                     ) {
@@ -468,8 +423,9 @@ fun CameraAnprScreen(
                         onClick = { takePicturePreviewLauncher.launch(null) },
                         modifier = Modifier
                             .weight(1f)
-                            .height(44.dp)
+                            .height(42.dp)
                             .testTag("gemini_vision_snap_button"),
+                        shape = RoundedCornerShape(10.dp),
                         border = BorderStroke(1.dp, CardSlateBorder),
                         colors = ButtonDefaults.outlinedButtonColors(contentColor = Color.White)
                     ) {
@@ -480,13 +436,13 @@ fun CameraAnprScreen(
                             tint = UpiCyan
                         )
                         Spacer(modifier = Modifier.width(6.dp))
-                        Text(tr(lang, "AI Vision", "AI கேமரா"), style = MaterialTheme.typography.labelLarge)
+                        Text(tr(lang, "AI Camera", "AI கேமரா"), style = MaterialTheme.typography.labelLarge)
                     }
 
                     IconButton(
                         onClick = { viewModel.runFastPlateLookup(plateInput) },
                         modifier = Modifier
-                            .size(44.dp)
+                            .size(42.dp)
                             .border(1.dp, CardSlateBorder, RoundedCornerShape(10.dp))
                             .testTag("fast_rto_lookup_button")
                     ) {
@@ -517,7 +473,7 @@ fun CameraAnprScreen(
                                     )
                                     Spacer(modifier = Modifier.width(8.dp))
                                     Text(
-                                        text = "Analyzing vehicle plate...",
+                                        text = tr(lang, "Analyzing vehicle plate...", "வாகன எண்ணை ஆய்வு செய்கிறது..."),
                                         style = MaterialTheme.typography.bodyMedium,
                                         color = SafetyAmber
                                     )
@@ -526,14 +482,14 @@ fun CameraAnprScreen(
                             is AiTaskState.Success -> {
                                 Surface(
                                     color = AsphaltObsidian,
-                                    shape = RoundedCornerShape(8.dp),
+                                    shape = RoundedCornerShape(10.dp),
                                     border = BorderStroke(1.dp, UpiCyan.copy(alpha = 0.5f))
                                 ) {
                                     Text(
                                         text = vState.resultText,
                                         style = MaterialTheme.typography.bodyMedium,
                                         color = Color.White,
-                                        modifier = Modifier.padding(8.dp)
+                                        modifier = Modifier.padding(10.dp)
                                     )
                                 }
                             }
@@ -550,7 +506,7 @@ fun CameraAnprScreen(
                         when (val fState = fastRtoState) {
                             is AiTaskState.Loading -> {
                                 Text(
-                                    text = "Checking RTO region...",
+                                    text = tr(lang, "Checking RTO region...", "RTO விவரம் தேடுகிறது..."),
                                     style = MaterialTheme.typography.bodyMedium,
                                     color = MutedSteel
                                 )
@@ -558,14 +514,14 @@ fun CameraAnprScreen(
                             is AiTaskState.Success -> {
                                 Surface(
                                     color = AsphaltObsidian,
-                                    shape = RoundedCornerShape(8.dp),
+                                    shape = RoundedCornerShape(10.dp),
                                     border = BorderStroke(1.dp, SafetyAmber.copy(alpha = 0.4f))
                                 ) {
                                     Text(
                                         text = fState.resultText,
                                         style = MaterialTheme.typography.bodyMedium,
                                         color = Color.White,
-                                        modifier = Modifier.padding(8.dp)
+                                        modifier = Modifier.padding(10.dp)
                                     )
                                 }
                             }
@@ -596,12 +552,12 @@ fun CameraAnprScreen(
                     .testTag("previous_pending_balance_banner"),
                 colors = CardDefaults.cardColors(containerColor = DebtCrimsonDim),
                 border = BorderStroke(1.dp, DebtCrimson),
-                shape = RoundedCornerShape(12.dp)
+                shape = RoundedCornerShape(14.dp)
             ) {
                 Row(
                     modifier = Modifier
                         .fillMaxWidth()
-                        .padding(12.dp),
+                        .padding(14.dp),
                     verticalAlignment = Alignment.CenterVertically
                 ) {
                     Icon(
@@ -610,7 +566,7 @@ fun CameraAnprScreen(
                         tint = DebtCrimson,
                         modifier = Modifier.size(22.dp)
                     )
-                    Spacer(modifier = Modifier.width(10.dp))
+                    Spacer(modifier = Modifier.width(12.dp))
                     Column(modifier = Modifier.weight(1f)) {
                         Text(
                             text = tr(
@@ -624,8 +580,8 @@ fun CameraAnprScreen(
                         Text(
                             text = tr(
                                 lang,
-                                "Added automatically to ${pendingCredit.plateNumber}'s bill (${pendingCredit.notes}).",
-                                "${pendingCredit.plateNumber} தற்போதைய கட்டணத்துடன் சேர்க்கப்பட்டது (${pendingCredit.notes})."
+                                "Added automatically to ${pendingCredit.plateNumber}'s bill.",
+                                "${pendingCredit.plateNumber} தற்போதைய கட்டணத்துடன் சேர்க்கப்பட்டது."
                             ),
                             style = MaterialTheme.typography.bodyMedium,
                             color = Color(0xFFFFB4A1)
@@ -645,12 +601,12 @@ fun CameraAnprScreen(
                         .testTag("valid_pass_banner"),
                     colors = CardDefaults.cardColors(containerColor = CashEmeraldDim),
                     border = BorderStroke(1.dp, CashEmerald),
-                    shape = RoundedCornerShape(12.dp)
+                    shape = RoundedCornerShape(14.dp)
                 ) {
                     Row(
                         modifier = Modifier
                             .fillMaxWidth()
-                            .padding(12.dp),
+                            .padding(14.dp),
                         verticalAlignment = Alignment.CenterVertically
                     ) {
                         Icon(
@@ -659,7 +615,7 @@ fun CameraAnprScreen(
                             tint = CashEmerald,
                             modifier = Modifier.size(22.dp)
                         )
-                        Spacer(modifier = Modifier.width(10.dp))
+                        Spacer(modifier = Modifier.width(12.dp))
                         Column(modifier = Modifier.weight(1f)) {
                             Text(
                                 text = tr(
@@ -673,7 +629,7 @@ fun CameraAnprScreen(
                             Text(
                                 text = tr(
                                     lang,
-                                    "${passEntity.passType.replace("_", " ")} • ₹0 daily fee applied",
+                                    "${passEntity.passType.replace("_", " ")} • ₹0 daily fee",
                                     "${passEntity.passType.replace("_", " ")} • ₹0 தினசரி கட்டணம்"
                                 ),
                                 style = MaterialTheme.typography.bodyMedium,
@@ -689,12 +645,12 @@ fun CameraAnprScreen(
                         .testTag("expired_pass_banner"),
                     colors = CardDefaults.cardColors(containerColor = SafetyAmberDim),
                     border = BorderStroke(1.dp, SafetyAmber),
-                    shape = RoundedCornerShape(12.dp)
+                    shape = RoundedCornerShape(14.dp)
                 ) {
                     Row(
                         modifier = Modifier
                             .fillMaxWidth()
-                            .padding(12.dp),
+                            .padding(14.dp),
                         verticalAlignment = Alignment.CenterVertically,
                         horizontalArrangement = Arrangement.SpaceBetween
                     ) {
@@ -711,8 +667,8 @@ fun CameraAnprScreen(
                             Text(
                                 text = tr(
                                     lang,
-                                    "Standard ₹${rateConfig.dailyRate.toInt()}/24h rate applies.",
-                                    "சாதாரண கட்டணம் ₹${rateConfig.dailyRate.toInt()}/நாள் பொருந்தும்."
+                                    "₹${rateConfig.dailyRate.toInt()}/24h rate applies",
+                                    "₹${rateConfig.dailyRate.toInt()}/நாள் கட்டணம் பொருந்தும்"
                                 ),
                                 style = MaterialTheme.typography.bodyMedium,
                                 color = Color.White
@@ -733,18 +689,18 @@ fun CameraAnprScreen(
             }
         }
 
-        // 5. PLATE INPUT + QUICK RTO BAR + MODE-SPECIFIC ENTRY / EXIT CARD
+        // 5. CLEAN PLATE INPUT + QUICK RTO BAR + PRIMARY ACTION CARD
         Card(
             modifier = Modifier.fillMaxWidth(),
-            shape = RoundedCornerShape(14.dp),
+            shape = RoundedCornerShape(16.dp),
             border = BorderStroke(1.dp, CardSlateBorder),
             colors = CardDefaults.cardColors(containerColor = ElevatedSlate)
         ) {
             Column(
                 modifier = Modifier
                     .fillMaxWidth()
-                    .padding(14.dp),
-                verticalArrangement = Arrangement.spacedBy(10.dp)
+                    .padding(16.dp),
+                verticalArrangement = Arrangement.spacedBy(12.dp)
             ) {
                 Row(
                     modifier = Modifier.fillMaxWidth(),
@@ -753,25 +709,72 @@ fun CameraAnprScreen(
                 ) {
                     Text(
                         text = if (scanMode == ScanMode.ENTRY) {
-                            tr(lang, "Vehicle Plate (Entry)", "வாகன எண் (உள்ளே - Entry)")
+                            tr(lang, "License Plate", "வாகன எண் (உள்ளே)")
                         } else {
-                            tr(lang, "Vehicle Plate (Exit / Scan Out)", "வாகன எண் (வெளியே - Exit)")
+                            tr(lang, "License Plate (Exit)", "வாகன எண் (வெளியே)")
                         },
                         style = MaterialTheme.typography.titleMedium,
                         color = Color.White
                     )
-                    Text(
-                        text = if (inspection.isValidFormat) {
-                            AnprFrameAnalyzer.lookupRtoDistrict(plateInput)
-                        } else {
-                            tr(lang, "Select RTO prefix or type", "RTO எண்ணைத் தேர்ந்தெடுக்கவும்")
-                        },
-                        style = MaterialTheme.typography.labelMedium,
-                        color = if (inspection.isValidFormat) CashEmerald else MutedSteel
-                    )
+                    if (inspection.isValidFormat) {
+                        Text(
+                            text = AnprFrameAnalyzer.lookupRtoDistrict(plateInput),
+                            style = MaterialTheme.typography.labelMedium,
+                            color = CashEmerald
+                        )
+                    }
                 }
 
-                // Quick-Prefix Bar for Rusted/Ghost Plates
+                // In EXIT Mode, show currently parked bikes as one-tap chips right inside the card
+                AnimatedVisibility(visible = scanMode == ScanMode.EXIT && insideVehicles.isNotEmpty()) {
+                    Column(verticalArrangement = Arrangement.spacedBy(6.dp)) {
+                        Text(
+                            text = tr(
+                                lang,
+                                "Parked Inside (${insideVehicles.size}) — Tap to select:",
+                                "உள்ளே உள்ளவை (${insideVehicles.size}) — தொடவும்:"
+                            ),
+                            style = MaterialTheme.typography.labelMedium,
+                            color = CashEmerald
+                        )
+                        Row(
+                            modifier = Modifier
+                                .fillMaxWidth()
+                                .horizontalScroll(rememberScrollState()),
+                            horizontalArrangement = Arrangement.spacedBy(8.dp)
+                        ) {
+                            insideVehicles.forEach { parked ->
+                                val isSelected = plateInput == parked.plateNumber
+                                FilterChip(
+                                    selected = isSelected,
+                                    onClick = { viewModel.onPlateInputChanged(parked.plateNumber) },
+                                    label = {
+                                        Text(
+                                            text = parked.plateNumber,
+                                            fontFamily = JetBrainsMonoFontFamily,
+                                            style = MaterialTheme.typography.bodyMedium,
+                                            fontWeight = FontWeight.Medium
+                                        )
+                                    },
+                                    colors = FilterChipDefaults.filterChipColors(
+                                        selectedContainerColor = CashEmerald,
+                                        selectedLabelColor = Color.Black,
+                                        containerColor = AsphaltObsidian,
+                                        labelColor = Color.White
+                                    ),
+                                    border = FilterChipDefaults.filterChipBorder(
+                                        enabled = true,
+                                        selected = isSelected,
+                                        borderColor = CashEmerald.copy(alpha = 0.4f)
+                                    ),
+                                    modifier = Modifier.testTag("quick_exit_chip_${parked.plateNumber}")
+                                )
+                            }
+                        }
+                    }
+                }
+
+                // Quick-Prefix Bar for Local RTO Prefixes
                 Row(
                     modifier = Modifier
                         .fillMaxWidth()
@@ -801,7 +804,7 @@ fun CameraAnprScreen(
                                 borderColor = CardSlateBorder
                             ),
                             modifier = Modifier
-                                .height(40.dp)
+                                .height(38.dp)
                                 .testTag("rto_prefix_chip_$prefix")
                         )
                     }
@@ -822,7 +825,7 @@ fun CameraAnprScreen(
                         Text(
                             text = "TN39AB1234",
                             style = MaterialTheme.typography.displayMedium,
-                            color = MutedSteel.copy(alpha = 0.4f)
+                            color = MutedSteel.copy(alpha = 0.35f)
                         )
                     },
                     singleLine = true,
@@ -832,8 +835,8 @@ fun CameraAnprScreen(
                     leadingIcon = {
                         Surface(
                             color = Color(0xFF1E3A8A),
-                            shape = RoundedCornerShape(4.dp),
-                            modifier = Modifier.padding(start = 8.dp)
+                            shape = RoundedCornerShape(6.dp),
+                            modifier = Modifier.padding(start = 10.dp)
                         ) {
                             Text(
                                 text = "IND",
@@ -900,43 +903,33 @@ fun CameraAnprScreen(
                     } else if (plateInput.length >= 4) {
                         Surface(
                             color = AsphaltObsidian,
-                            shape = RoundedCornerShape(10.dp),
+                            shape = RoundedCornerShape(12.dp),
                             border = BorderStroke(1.dp, CardSlateBorder),
                             modifier = Modifier.fillMaxWidth()
                         ) {
                             Row(
                                 modifier = Modifier
                                     .fillMaxWidth()
-                                    .padding(12.dp),
+                                    .padding(14.dp),
                                 horizontalArrangement = Arrangement.SpaceBetween,
                                 verticalAlignment = Alignment.CenterVertically
                             ) {
-                                Column(modifier = Modifier.weight(1f)) {
-                                    Text(
-                                        text = tr(
-                                            lang,
-                                            "No local active record for $plateInput",
-                                            "$plateInput உள்ளே இருப்பதாகப் பதிவு இல்லை"
-                                        ),
-                                        style = MaterialTheme.typography.titleMedium,
-                                        color = Color.White
-                                    )
-                                    Text(
-                                        text = tr(
-                                            lang,
-                                            "Tap 'Search & Calculate Fee' below or switch to Entry mode.",
-                                            "கீழே உள்ள பொத்தானை அழுத்தித் தேடவும் அல்லது 'உள்ளே' முறைக்கு மாற்றவும்."
-                                        ),
-                                        style = MaterialTheme.typography.bodyMedium,
-                                        color = MutedSteel
-                                    )
-                                }
+                                Text(
+                                    text = tr(
+                                        lang,
+                                        "$plateInput is not parked inside",
+                                        "$plateInput உள்ளே பதிவாகவில்லை"
+                                    ),
+                                    style = MaterialTheme.typography.bodyMedium,
+                                    color = MutedSteel,
+                                    modifier = Modifier.weight(1f)
+                                )
                                 OutlinedButton(
                                     onClick = { viewModel.setScanMode(ScanMode.ENTRY) },
                                     border = BorderStroke(1.dp, SafetyAmber),
                                     colors = ButtonDefaults.outlinedButtonColors(contentColor = SafetyAmber)
                                 ) {
-                                    Text(tr(lang, "Switch to Entry", "உள்ளே மாற்று"), style = MaterialTheme.typography.labelLarge)
+                                    Text(tr(lang, "Entry Mode", "உள்ளே மாற்று"), style = MaterialTheme.typography.labelLarge)
                                 }
                             }
                         }
@@ -946,14 +939,14 @@ fun CameraAnprScreen(
                     if (activeInside != null && exitPreview != null) {
                         Surface(
                             color = AsphaltObsidian,
-                            shape = RoundedCornerShape(10.dp),
+                            shape = RoundedCornerShape(12.dp),
                             border = BorderStroke(1.dp, SafetyAmber.copy(alpha = 0.6f)),
                             modifier = Modifier.fillMaxWidth()
                         ) {
                             Row(
                                 modifier = Modifier
                                     .fillMaxWidth()
-                                    .padding(12.dp),
+                                    .padding(14.dp),
                                 horizontalArrangement = Arrangement.SpaceBetween,
                                 verticalAlignment = Alignment.CenterVertically
                             ) {
@@ -970,8 +963,8 @@ fun CameraAnprScreen(
                                     Text(
                                         text = tr(
                                             lang,
-                                            "Current fee due: ₹${exitPreview.totalAmountDue.toInt()} (${exitPreview.daysCharged}d)",
-                                            "தற்போதைய கட்டணம்: ₹${exitPreview.totalAmountDue.toInt()} (${exitPreview.daysCharged} நாள்)"
+                                            "Fee due: ₹${exitPreview.totalAmountDue.toInt()} (${exitPreview.daysCharged}d)",
+                                            "கட்டணம்: ₹${exitPreview.totalAmountDue.toInt()} (${exitPreview.daysCharged} நாள்)"
                                         ),
                                         style = MaterialTheme.typography.bodyMedium,
                                         color = MutedSteel
@@ -984,7 +977,7 @@ fun CameraAnprScreen(
                                         contentColor = Color.Black
                                     )
                                 ) {
-                                    Text(tr(lang, "Switch to Exit", "வெளியே மாற்று"), style = MaterialTheme.typography.labelLarge)
+                                    Text(tr(lang, "Exit", "வெளியே"), style = MaterialTheme.typography.labelLarge)
                                 }
                             }
                         }
@@ -994,7 +987,7 @@ fun CameraAnprScreen(
                 // Primary Action Row Driven Strictly by Entry / Exit Toggle State
                 Row(
                     modifier = Modifier.fillMaxWidth(),
-                    horizontalArrangement = Arrangement.spacedBy(8.dp)
+                    horizontalArrangement = Arrangement.spacedBy(10.dp)
                 ) {
                     if (scanMode == ScanMode.EXIT) {
                         Button(
@@ -1002,7 +995,7 @@ fun CameraAnprScreen(
                             enabled = plateInput.length >= 4,
                             modifier = Modifier
                                 .weight(1f)
-                                .height(50.dp)
+                                .height(52.dp)
                                 .testTag("process_exit_primary_button"),
                             shape = RoundedCornerShape(12.dp),
                             colors = ButtonDefaults.buttonColors(
@@ -1015,15 +1008,15 @@ fun CameraAnprScreen(
                                 contentDescription = "Search Active Record and Calculate Exit Fee",
                                 modifier = Modifier.size(18.dp)
                             )
-                            Spacer(modifier = Modifier.width(6.dp))
+                            Spacer(modifier = Modifier.width(8.dp))
                             val labelText = if (activeInside != null && exitPreview != null) {
                                 tr(
                                     lang,
-                                    "Calculate Fee & Exit (₹${exitPreview.totalAmountDue.toInt()})",
-                                    "பில் & வெளியேற்று (₹${exitPreview.totalAmountDue.toInt()})"
+                                    "Bill & Exit • ₹${exitPreview.totalAmountDue.toInt()}",
+                                    "பில் & வெளியேற்று • ₹${exitPreview.totalAmountDue.toInt()}"
                                 )
                             } else {
-                                tr(lang, "Search & Calculate Fee", "தேடு & கட்டணம் கணக்கிடு")
+                                tr(lang, "Find & Calculate Fee", "தேடு & கட்டணம் கணக்கிடு")
                             }
                             Text(
                                 text = labelText,
@@ -1036,7 +1029,7 @@ fun CameraAnprScreen(
                             enabled = plateInput.length >= 4,
                             modifier = Modifier
                                 .weight(1f)
-                                .height(50.dp)
+                                .height(52.dp)
                                 .testTag("log_entry_primary_button"),
                             shape = RoundedCornerShape(12.dp),
                             colors = ButtonDefaults.buttonColors(
@@ -1049,9 +1042,9 @@ fun CameraAnprScreen(
                                 contentDescription = "Create New Entry Record",
                                 modifier = Modifier.size(18.dp)
                             )
-                            Spacer(modifier = Modifier.width(6.dp))
+                            Spacer(modifier = Modifier.width(8.dp))
                             Text(
-                                text = tr(lang, "Create Entry Record", "உள்ளே பதிவு செய் (Entry)"),
+                                text = tr(lang, "Log Vehicle Entry", "உள்ளே பதிவு செய்"),
                                 style = MaterialTheme.typography.titleMedium
                             )
                         }
@@ -1061,7 +1054,7 @@ fun CameraAnprScreen(
                         onClick = { showIssuePassDialog = true },
                         enabled = plateInput.length >= 4,
                         modifier = Modifier
-                            .height(50.dp)
+                            .height(52.dp)
                             .testTag("open_pass_dialog_button"),
                         shape = RoundedCornerShape(12.dp),
                         border = BorderStroke(1.dp, CardSlateBorder),
@@ -1139,115 +1132,91 @@ private fun ScanModeToggleHeader(
         shape = RoundedCornerShape(14.dp),
         border = BorderStroke(
             1.dp,
-            if (isEntry) SafetyAmber.copy(alpha = 0.5f) else CashEmerald.copy(alpha = 0.5f)
+            if (isEntry) SafetyAmber.copy(alpha = 0.45f) else CashEmerald.copy(alpha = 0.45f)
         ),
         modifier = Modifier.fillMaxWidth()
     ) {
-        Column(
+        Row(
             modifier = Modifier
                 .fillMaxWidth()
-                .padding(8.dp),
-            verticalArrangement = Arrangement.spacedBy(6.dp)
+                .padding(6.dp),
+            verticalAlignment = Alignment.CenterVertically,
+            horizontalArrangement = Arrangement.spacedBy(6.dp)
         ) {
-            Row(
-                modifier = Modifier.fillMaxWidth(),
-                verticalAlignment = Alignment.CenterVertically,
-                horizontalArrangement = Arrangement.spacedBy(6.dp)
+            Surface(
+                color = if (isEntry) SafetyAmber else Color.Transparent,
+                shape = RoundedCornerShape(10.dp),
+                modifier = Modifier
+                    .weight(1f)
+                    .height(44.dp)
+                    .clip(RoundedCornerShape(10.dp))
+                    .clickable { onSelectMode(ScanMode.ENTRY) }
+                    .testTag("scan_mode_entry_tab")
             ) {
-                Surface(
-                    color = if (isEntry) SafetyAmber else Color.Transparent,
-                    shape = RoundedCornerShape(10.dp),
-                    modifier = Modifier
-                        .weight(1f)
-                        .height(42.dp)
-                        .clip(RoundedCornerShape(10.dp))
-                        .clickable { onSelectMode(ScanMode.ENTRY) }
-                        .testTag("scan_mode_entry_tab")
-                ) {
-                    Row(
-                        modifier = Modifier.fillMaxSize(),
-                        horizontalArrangement = Arrangement.Center,
-                        verticalAlignment = Alignment.CenterVertically
-                    ) {
-                        Icon(
-                            imageVector = Icons.AutoMirrored.Filled.Login,
-                            contentDescription = "Entry Scan Mode",
-                            tint = if (isEntry) Color.Black else MutedSteel,
-                            modifier = Modifier.size(16.dp)
-                        )
-                        Spacer(modifier = Modifier.width(6.dp))
-                        Text(
-                            text = tr(lang, "Entry (In)", "உள்ளே (In)"),
-                            style = MaterialTheme.typography.titleMedium,
-                            color = if (isEntry) Color.Black else MutedSteel
-                        )
-                    }
-                }
-
-                Surface(
-                    color = if (!isEntry) CashEmerald else Color.Transparent,
-                    shape = RoundedCornerShape(10.dp),
-                    modifier = Modifier
-                        .weight(1f)
-                        .height(42.dp)
-                        .clip(RoundedCornerShape(10.dp))
-                        .clickable { onSelectMode(ScanMode.EXIT) }
-                        .testTag("scan_mode_exit_tab")
-                ) {
-                    Row(
-                        modifier = Modifier.fillMaxSize(),
-                        horizontalArrangement = Arrangement.Center,
-                        verticalAlignment = Alignment.CenterVertically
-                    ) {
-                        Icon(
-                            imageVector = Icons.AutoMirrored.Filled.ExitToApp,
-                            contentDescription = "Exit Scan Mode",
-                            tint = if (!isEntry) Color.Black else MutedSteel,
-                            modifier = Modifier.size(16.dp)
-                        )
-                        Spacer(modifier = Modifier.width(6.dp))
-                        Text(
-                            text = tr(lang, "Exit ($insideCount Inside)", "வெளியே ($insideCount)"),
-                            style = MaterialTheme.typography.titleMedium,
-                            color = if (!isEntry) Color.Black else MutedSteel
-                        )
-                    }
-                }
-
-                IconButton(
-                    onClick = onToggleMode,
-                    modifier = Modifier
-                        .size(42.dp)
-                        .background(AsphaltObsidian, RoundedCornerShape(10.dp))
-                        .testTag("scan_mode_toggle_button")
+                Row(
+                    modifier = Modifier.fillMaxSize(),
+                    horizontalArrangement = Arrangement.Center,
+                    verticalAlignment = Alignment.CenterVertically
                 ) {
                     Icon(
-                        imageVector = Icons.Default.SwapHoriz,
-                        contentDescription = "Toggle Entry or Exit Mode",
-                        tint = if (isEntry) SafetyAmber else CashEmerald,
-                        modifier = Modifier.size(20.dp)
+                        imageVector = Icons.AutoMirrored.Filled.Login,
+                        contentDescription = "Entry Scan Mode",
+                        tint = if (isEntry) Color.Black else MutedSteel,
+                        modifier = Modifier.size(16.dp)
+                    )
+                    Spacer(modifier = Modifier.width(6.dp))
+                    Text(
+                        text = tr(lang, "Entry (In)", "உள்ளே (In)"),
+                        style = MaterialTheme.typography.titleMedium,
+                        color = if (isEntry) Color.Black else MutedSteel
                     )
                 }
             }
 
-            Text(
-                text = if (isEntry) {
-                    tr(
-                        lang,
-                        "Entry Mode: Scanning or typing a plate creates a new parking record",
-                        "உள்ளே முறை: வண்டி எண்ணை ஸ்கேன் செய்தால் புதிய பார்க்கிங் பதிவு உருவாகும்"
+            Surface(
+                color = if (!isEntry) CashEmerald else Color.Transparent,
+                shape = RoundedCornerShape(10.dp),
+                modifier = Modifier
+                    .weight(1f)
+                    .height(44.dp)
+                    .clip(RoundedCornerShape(10.dp))
+                    .clickable { onSelectMode(ScanMode.EXIT) }
+                    .testTag("scan_mode_exit_tab")
+            ) {
+                Row(
+                    modifier = Modifier.fillMaxSize(),
+                    horizontalArrangement = Arrangement.Center,
+                    verticalAlignment = Alignment.CenterVertically
+                ) {
+                    Icon(
+                        imageVector = Icons.AutoMirrored.Filled.ExitToApp,
+                        contentDescription = "Exit Scan Mode",
+                        tint = if (!isEntry) Color.Black else MutedSteel,
+                        modifier = Modifier.size(16.dp)
                     )
-                } else {
-                    tr(
-                        lang,
-                        "Exit Mode: Scanning or typing a plate searches active records to calculate the fee",
-                        "வெளியே முறை: வண்டி எண்ணை ஸ்கேன் செய்தால் கட்டணம் கணக்கிடப்படும்"
+                    Spacer(modifier = Modifier.width(6.dp))
+                    Text(
+                        text = tr(lang, "Exit ($insideCount)", "வெளியே ($insideCount)"),
+                        style = MaterialTheme.typography.titleMedium,
+                        color = if (!isEntry) Color.Black else MutedSteel
                     )
-                },
-                style = MaterialTheme.typography.labelMedium,
-                color = MutedSteel,
-                modifier = Modifier.padding(horizontal = 4.dp)
-            )
+                }
+            }
+
+            IconButton(
+                onClick = onToggleMode,
+                modifier = Modifier
+                    .size(44.dp)
+                    .background(AsphaltObsidian, RoundedCornerShape(10.dp))
+                    .testTag("scan_mode_toggle_button")
+            ) {
+                Icon(
+                    imageVector = Icons.Default.SwapHoriz,
+                    contentDescription = "Toggle Entry or Exit Mode",
+                    tint = if (isEntry) SafetyAmber else CashEmerald,
+                    modifier = Modifier.size(20.dp)
+                )
+            }
         }
     }
 }

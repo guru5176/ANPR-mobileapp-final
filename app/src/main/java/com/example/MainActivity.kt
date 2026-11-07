@@ -253,108 +253,89 @@ fun AuthenticatedParkingApp(currentUserId: String) {
                 topBar = {
                     TopAppBar(
                         colors = TopAppBarDefaults.topAppBarColors(
-                            containerColor = ElevatedSlate,
+                            containerColor = AsphaltObsidian,
                             titleContentColor = Color.White
                         ),
                         title = {
-                            Column {
-                                Row(
-                                    verticalAlignment = Alignment.CenterVertically,
-                                    horizontalArrangement = Arrangement.spacedBy(6.dp)
-                                ) {
-                                    Text(
-                                        text = "MotoVault",
-                                        style = MaterialTheme.typography.titleLarge,
-                                        color = Color.White,
-                                        maxLines = 1
-                                    )
-                                    Surface(
-                                        color = if (currentRole == AppRole.OWNER) {
-                                            CashEmerald.copy(alpha = 0.16f)
-                                        } else {
-                                            SafetyAmber.copy(alpha = 0.16f)
-                                        },
-                                        shape = RoundedCornerShape(6.dp),
-                                        border = BorderStroke(
-                                            1.dp,
-                                            if (currentRole == AppRole.OWNER) CashEmerald.copy(alpha = 0.6f)
-                                            else SafetyAmber.copy(alpha = 0.6f)
-                                        )
-                                    ) {
-                                        Text(
-                                            text = if (currentRole == AppRole.OWNER) {
-                                                tr(appLanguage, "Owner", "உரிமையாளர்")
-                                            } else {
-                                                tr(appLanguage, "Worker", "பணியாளர்")
-                                            },
-                                            style = MaterialTheme.typography.labelMedium,
-                                            color = if (currentRole == AppRole.OWNER) CashEmerald else SafetyAmber,
-                                            maxLines = 1,
-                                            modifier = Modifier.padding(horizontal = 6.dp, vertical = 2.dp)
-                                        )
-                                    }
+                            Row(
+                                verticalAlignment = Alignment.CenterVertically,
+                                horizontalArrangement = Arrangement.spacedBy(10.dp)
+                            ) {
+                                Text(
+                                    text = "MotoVault",
+                                    style = MaterialTheme.typography.titleLarge,
+                                    fontWeight = FontWeight.Bold,
+                                    color = Color.White,
+                                    maxLines = 1
+                                )
 
-                                    // Live Offline Sync Queue & Connectivity Pill
-                                    val syncPillColor = when {
-                                        pendingSyncCount > 0 -> SafetyAmber
-                                        !isOnline -> DebtCrimson
-                                        else -> CashEmerald
-                                    }
-                                    val syncPillLabel = when {
-                                        isSyncingQueue -> tr(appLanguage, "Syncing...", "இணைக்கிறது...")
-                                        pendingSyncCount > 0 -> tr(appLanguage, "Queue ($pendingSyncCount)", "நிலுவை ($pendingSyncCount)")
-                                        !isOnline -> tr(appLanguage, "Offline", "ஆஃப்லைன்")
-                                        else -> tr(appLanguage, "Synced", "இணைந்தது")
-                                    }
-                                    Surface(
-                                        color = syncPillColor.copy(alpha = 0.14f),
-                                        shape = RoundedCornerShape(6.dp),
-                                        border = BorderStroke(1.dp, syncPillColor.copy(alpha = 0.55f)),
-                                        modifier = Modifier
-                                            .clip(RoundedCornerShape(6.dp))
-                                            .clickable { viewModel.syncOfflineQueueNow(silent = false) }
-                                            .testTag("sync_queue_status_pill")
+                                // Minimal Cloud Sync Status Pill
+                                val syncPillColor = when {
+                                    pendingSyncCount > 0 -> SafetyAmber
+                                    !isOnline -> DebtCrimson
+                                    else -> CashEmerald
+                                }
+                                val syncPillLabel = when {
+                                    isSyncingQueue -> tr(appLanguage, "Syncing", "இணைக்கிறது")
+                                    pendingSyncCount > 0 -> tr(appLanguage, "$pendingSyncCount Queued", "$pendingSyncCount நிலுவை")
+                                    !isOnline -> tr(appLanguage, "Offline", "ஆஃப்லைன்")
+                                    else -> tr(appLanguage, "Live", "ஆன்லைன்")
+                                }
+                                Surface(
+                                    color = syncPillColor.copy(alpha = 0.12f),
+                                    shape = RoundedCornerShape(20.dp),
+                                    border = BorderStroke(1.dp, syncPillColor.copy(alpha = 0.4f)),
+                                    modifier = Modifier
+                                        .clip(RoundedCornerShape(20.dp))
+                                        .clickable { viewModel.syncOfflineQueueNow(silent = false) }
+                                        .testTag("sync_queue_status_pill")
+                                ) {
+                                    Row(
+                                        verticalAlignment = Alignment.CenterVertically,
+                                        modifier = Modifier.padding(horizontal = 8.dp, vertical = 3.dp)
                                     ) {
+                                        Box(
+                                            modifier = Modifier
+                                                .size(6.dp)
+                                                .clip(RoundedCornerShape(3.dp))
+                                                .clickable(enabled = false) {}
+                                        ) {
+                                            Surface(
+                                                color = syncPillColor,
+                                                shape = RoundedCornerShape(3.dp),
+                                                modifier = Modifier.fillMaxSize()
+                                            ) {}
+                                        }
+                                        Spacer(modifier = Modifier.width(5.dp))
                                         Text(
                                             text = syncPillLabel,
                                             style = MaterialTheme.typography.labelMedium,
                                             color = syncPillColor,
-                                            maxLines = 1,
-                                            modifier = Modifier.padding(horizontal = 6.dp, vertical = 2.dp)
+                                            maxLines = 1
                                         )
                                     }
                                 }
-                                Text(
-                                    text = tr(
-                                        appLanguage,
-                                        "Inside: ${summary.totalBikesInside} • Drawer: ₹${summary.expectedCashInDrawer.toInt()}",
-                                        "உள்ளே: ${summary.totalBikesInside} • கல்லா: ₹${summary.expectedCashInDrawer.toInt()}"
-                                    ),
-                                    style = MaterialTheme.typography.labelMedium,
-                                    color = MutedSteel,
-                                    maxLines = 1
-                                )
                             }
                         },
                         actions = {
-                            // One-Tap Tamil / English Language Toggle Button for Workers
+                            // One-Tap Tamil / English Language Toggle Pill
                             Surface(
                                 color = if (appLanguage == AppLanguage.TAMIL) {
                                     SafetyAmber
                                 } else {
-                                    SafetyAmber.copy(alpha = 0.16f)
+                                    ElevatedSlate
                                 },
-                                shape = RoundedCornerShape(8.dp),
-                                border = BorderStroke(1.dp, SafetyAmber),
+                                shape = RoundedCornerShape(10.dp),
+                                border = BorderStroke(1.dp, SafetyAmber.copy(alpha = 0.7f)),
                                 modifier = Modifier
-                                    .height(34.dp)
-                                    .clip(RoundedCornerShape(8.dp))
+                                    .height(36.dp)
+                                    .clip(RoundedCornerShape(10.dp))
                                     .clickable { viewModel.toggleLanguage() }
                                     .testTag("language_toggle_button")
                             ) {
                                 Box(
                                     contentAlignment = Alignment.Center,
-                                    modifier = Modifier.padding(horizontal = 10.dp)
+                                    modifier = Modifier.padding(horizontal = 12.dp)
                                 ) {
                                     Text(
                                         text = if (appLanguage == AppLanguage.ENGLISH) "தமிழ்" else "EN",
@@ -366,48 +347,58 @@ fun AuthenticatedParkingApp(currentUserId: String) {
                                 }
                             }
 
-                            Spacer(modifier = Modifier.width(6.dp))
+                            Spacer(modifier = Modifier.width(8.dp))
 
-                            // Role Switch Button (PIN-protected Owner Mode)
-                            OutlinedButton(
-                                onClick = {
-                                    if (currentRole == AppRole.OWNER) {
-                                        viewModel.switchToWorkerRole()
-                                        if (currentTab.isOwnerTask) {
-                                            currentTab = MainTab.SCANNER
-                                        }
-                                    } else {
-                                        pendingOwnerTab = MainTab.OWNER_LEDGER
-                                        pinError = null
-                                        showOwnerPinModal = true
-                                    }
-                                },
-                                border = BorderStroke(1.dp, CardSlateBorder),
-                                colors = ButtonDefaults.outlinedButtonColors(contentColor = Color.White),
+                            // Unified Role Badge & Switcher Button (Worker <-> PIN-Protected Owner)
+                            val isOwner = currentRole == AppRole.OWNER
+                            val roleAccent = if (isOwner) CashEmerald else SafetyAmber
+                            Surface(
+                                color = roleAccent.copy(alpha = 0.12f),
+                                shape = RoundedCornerShape(10.dp),
+                                border = BorderStroke(1.dp, roleAccent.copy(alpha = 0.5f)),
                                 modifier = Modifier
-                                    .height(34.dp)
+                                    .height(36.dp)
+                                    .clip(RoundedCornerShape(10.dp))
+                                    .clickable {
+                                        if (isOwner) {
+                                            viewModel.switchToWorkerRole()
+                                            if (currentTab.isOwnerTask) {
+                                                currentTab = MainTab.SCANNER
+                                            }
+                                        } else {
+                                            pendingOwnerTab = MainTab.OWNER_LEDGER
+                                            pinError = null
+                                            showOwnerPinModal = true
+                                        }
+                                    }
                                     .testTag("role_switch_button")
                             ) {
-                                Icon(
-                                    imageVector = if (currentRole == AppRole.OWNER) {
-                                        Icons.Default.Badge
-                                    } else {
-                                        Icons.Default.AdminPanelSettings
-                                    },
-                                    contentDescription = "Switch Role",
-                                    modifier = Modifier.size(14.dp),
-                                    tint = SafetyAmber
-                                )
-                                Spacer(modifier = Modifier.width(4.dp))
-                                Text(
-                                    text = if (currentRole == AppRole.OWNER) {
-                                        tr(appLanguage, "Worker", "பணியாளர்")
-                                    } else {
-                                        tr(appLanguage, "Owner", "உரிமையாளர்")
-                                    },
-                                    style = MaterialTheme.typography.labelLarge,
-                                    maxLines = 1
-                                )
+                                Row(
+                                    verticalAlignment = Alignment.CenterVertically,
+                                    modifier = Modifier.padding(horizontal = 10.dp)
+                                ) {
+                                    Icon(
+                                        imageVector = if (isOwner) {
+                                            Icons.Default.AdminPanelSettings
+                                        } else {
+                                            Icons.Default.Badge
+                                        },
+                                        contentDescription = "Current Role",
+                                        modifier = Modifier.size(15.dp),
+                                        tint = roleAccent
+                                    )
+                                    Spacer(modifier = Modifier.width(5.dp))
+                                    Text(
+                                        text = if (isOwner) {
+                                            tr(appLanguage, "Owner", "உரிமையாளர்")
+                                        } else {
+                                            tr(appLanguage, "Worker", "பணியாளர்")
+                                        },
+                                        style = MaterialTheme.typography.labelLarge,
+                                        color = roleAccent,
+                                        maxLines = 1
+                                    )
+                                }
                             }
 
                             IconButton(
@@ -675,17 +666,17 @@ private fun WorkerParkingLogScreen(
     LazyColumn(
         modifier = Modifier
             .fillMaxSize()
-            .padding(horizontal = 16.dp, vertical = 12.dp),
-        verticalArrangement = Arrangement.spacedBy(10.dp)
+            .padding(horizontal = 16.dp, vertical = 14.dp),
+        verticalArrangement = Arrangement.spacedBy(14.dp)
     ) {
         if (!isOnline || pendingSyncCount > 0) {
             item {
                 Surface(
                     color = ElevatedSlate,
-                    shape = RoundedCornerShape(12.dp),
+                    shape = RoundedCornerShape(14.dp),
                     border = BorderStroke(
                         1.dp,
-                        if (pendingSyncCount > 0) SafetyAmber.copy(alpha = 0.7f) else DebtCrimson.copy(alpha = 0.7f)
+                        if (pendingSyncCount > 0) SafetyAmber.copy(alpha = 0.6f) else DebtCrimson.copy(alpha = 0.6f)
                     ),
                     modifier = Modifier
                         .fillMaxWidth()
@@ -694,28 +685,19 @@ private fun WorkerParkingLogScreen(
                     Row(
                         modifier = Modifier
                             .fillMaxWidth()
-                            .padding(horizontal = 14.dp, vertical = 10.dp),
+                            .padding(horizontal = 16.dp, vertical = 12.dp),
                         horizontalArrangement = Arrangement.SpaceBetween,
                         verticalAlignment = Alignment.CenterVertically
                     ) {
                         Column(modifier = Modifier.weight(1f)) {
                             Text(
                                 text = if (!isOnline) {
-                                    tr(lang, "Offline Mode • Room Sync Queue Active", "ஆஃப்லைன் முறை • லோக்கல் பதிவு செயல்பாட்டில் உள்ளது")
+                                    tr(lang, "Offline Mode • Saved Locally", "ஆஃப்லைன் முறை • லோக்கல் பதிவு")
                                 } else {
-                                    tr(lang, "Offline Sync Queue: $pendingSyncCount pending", "ஆஃப்லைன் வரிசை: $pendingSyncCount பதிவுகள் நிலுவையில்")
+                                    tr(lang, "$pendingSyncCount Pending Cloud Sync", "$pendingSyncCount பதிவுகள் நிலுவையில்")
                                 },
                                 style = MaterialTheme.typography.titleMedium,
                                 color = if (pendingSyncCount > 0) SafetyAmber else DebtCrimson
-                            )
-                            Text(
-                                text = tr(
-                                    lang,
-                                    "Logs saved locally in Room will automatically upload to Firestore when cellular signal returns.",
-                                    "இணைய இணைப்பு வந்தவுடன் அனைத்து வாகன பதிவுகளும் தானாக கிளவுட்டில் சேமிக்கப்படும்."
-                                ),
-                                style = MaterialTheme.typography.labelMedium,
-                                color = MutedSteel
                             )
                         }
                         Spacer(modifier = Modifier.width(8.dp))
@@ -744,24 +726,24 @@ private fun WorkerParkingLogScreen(
         item {
             Surface(
                 color = ElevatedSlate,
-                shape = RoundedCornerShape(12.dp),
+                shape = RoundedCornerShape(14.dp),
                 border = BorderStroke(1.dp, CardSlateBorder),
                 modifier = Modifier.fillMaxWidth()
             ) {
                 Row(
                     modifier = Modifier
                         .fillMaxWidth()
-                        .padding(5.dp),
+                        .padding(6.dp),
                     horizontalArrangement = Arrangement.spacedBy(6.dp)
                 ) {
                     val isParked = subTab == WorkerLogSubTab.PARKED_VEHICLES
                     Surface(
                         color = if (isParked) SafetyAmber else Color.Transparent,
-                        shape = RoundedCornerShape(8.dp),
+                        shape = RoundedCornerShape(10.dp),
                         modifier = Modifier
                             .weight(1f)
-                            .height(38.dp)
-                            .clip(RoundedCornerShape(8.dp))
+                            .height(42.dp)
+                            .clip(RoundedCornerShape(10.dp))
                             .clickable { subTab = WorkerLogSubTab.PARKED_VEHICLES }
                             .testTag("worker_log_subtab_parked")
                     ) {
@@ -778,7 +760,7 @@ private fun WorkerParkingLogScreen(
                             )
                             Spacer(modifier = Modifier.width(6.dp))
                             Text(
-                                text = tr(lang, "Parked Inside (${insideLogs.size})", "உள்ளே உள்ளவை (${insideLogs.size})"),
+                                text = tr(lang, "Parked (${insideLogs.size})", "உள்ளே (${insideLogs.size})"),
                                 style = MaterialTheme.typography.titleMedium,
                                 color = if (isParked) Color.Black else MutedSteel
                             )
@@ -787,11 +769,11 @@ private fun WorkerParkingLogScreen(
 
                     Surface(
                         color = if (!isParked) SafetyAmber else Color.Transparent,
-                        shape = RoundedCornerShape(8.dp),
+                        shape = RoundedCornerShape(10.dp),
                         modifier = Modifier
                             .weight(1f)
-                            .height(38.dp)
-                            .clip(RoundedCornerShape(8.dp))
+                            .height(42.dp)
+                            .clip(RoundedCornerShape(10.dp))
                             .clickable { subTab = WorkerLogSubTab.PASSES_AND_CREDITS }
                             .testTag("worker_log_subtab_passes")
                     ) {
@@ -808,7 +790,7 @@ private fun WorkerParkingLogScreen(
                             )
                             Spacer(modifier = Modifier.width(6.dp))
                             Text(
-                                text = tr(lang, "Passes & Credit (${passes.size})", "பாஸ் & கடன் (${passes.size})"),
+                                text = tr(lang, "Passes & Credit", "பாஸ் & கடன்"),
                                 style = MaterialTheme.typography.titleMedium,
                                 color = if (!isParked) Color.Black else MutedSteel
                             )
@@ -825,26 +807,16 @@ private fun WorkerParkingLogScreen(
                     horizontalArrangement = Arrangement.SpaceBetween,
                     verticalAlignment = Alignment.CenterVertically
                 ) {
-                    Column(modifier = Modifier.weight(1f)) {
-                        Text(
-                            text = tr(lang, "Vehicles Currently Inside", "உள்ளே நிற்கும் வாகனங்கள்"),
-                            style = MaterialTheme.typography.headlineMedium,
-                            color = Color.White
-                        )
-                        Text(
-                            text = tr(
-                                lang,
-                                "Tap 'Exit & Bill' on any bike or open the Exit Scanner.",
-                                "வெளியேறும் வாகனத்திற்கு 'வெளியே & பில்' என்பதை அழுத்தவும்."
-                            ),
-                            style = MaterialTheme.typography.bodyMedium,
-                            color = MutedSteel
-                        )
-                    }
+                    Text(
+                        text = tr(lang, "Active Vehicles (${insideLogs.size})", "உள்ளே நிற்கும் வாகனங்கள் (${insideLogs.size})"),
+                        style = MaterialTheme.typography.titleLarge,
+                        color = Color.White
+                    )
                     OutlinedButton(
                         onClick = onJumpToExitScanner,
-                        border = BorderStroke(1.dp, CashEmerald),
+                        border = BorderStroke(1.dp, CashEmerald.copy(alpha = 0.7f)),
                         colors = ButtonDefaults.outlinedButtonColors(contentColor = CashEmerald),
+                        shape = RoundedCornerShape(10.dp),
                         modifier = Modifier.testTag("jump_to_exit_scanner_button")
                     ) {
                         Text(tr(lang, "Scan Out", "வெளியே ஸ்கேன்"), style = MaterialTheme.typography.labelLarge)
@@ -858,21 +830,21 @@ private fun WorkerParkingLogScreen(
                         modifier = Modifier.fillMaxWidth(),
                         colors = CardDefaults.cardColors(containerColor = ElevatedSlate),
                         border = BorderStroke(1.dp, CardSlateBorder),
-                        shape = RoundedCornerShape(12.dp)
+                        shape = RoundedCornerShape(16.dp)
                     ) {
                         Column(
                             modifier = Modifier
                                 .fillMaxWidth()
-                                .padding(24.dp),
+                                .padding(32.dp),
                             horizontalAlignment = Alignment.CenterHorizontally
                         ) {
                             Icon(
                                 imageVector = Icons.AutoMirrored.Filled.DirectionsBike,
                                 contentDescription = "No bikes inside",
                                 tint = MutedSteel,
-                                modifier = Modifier.size(34.dp)
+                                modifier = Modifier.size(36.dp)
                             )
-                            Spacer(modifier = Modifier.height(6.dp))
+                            Spacer(modifier = Modifier.height(8.dp))
                             Text(
                                 text = tr(lang, "No vehicles currently parked inside.", "தற்போது உள்ளே வாகனங்கள் எதுவும் இல்லை."),
                                 style = MaterialTheme.typography.bodyMedium,
@@ -886,18 +858,21 @@ private fun WorkerParkingLogScreen(
                     val isSynced = log.syncStatus == SyncStatus.SYNCED
                     Card(
                         modifier = Modifier.fillMaxWidth(),
-                        shape = RoundedCornerShape(12.dp),
+                        shape = RoundedCornerShape(14.dp),
                         colors = CardDefaults.cardColors(containerColor = ElevatedSlate),
                         border = BorderStroke(1.dp, CardSlateBorder)
                     ) {
                         Row(
                             modifier = Modifier
                                 .fillMaxWidth()
-                                .padding(14.dp),
+                                .padding(16.dp),
                             verticalAlignment = Alignment.CenterVertically,
                             horizontalArrangement = Arrangement.SpaceBetween
                         ) {
-                            Column(modifier = Modifier.weight(1f)) {
+                            Column(
+                                modifier = Modifier.weight(1f),
+                                verticalArrangement = Arrangement.spacedBy(4.dp)
+                            ) {
                                 Row(
                                     verticalAlignment = Alignment.CenterVertically,
                                     horizontalArrangement = Arrangement.spacedBy(8.dp)
@@ -910,15 +885,13 @@ private fun WorkerParkingLogScreen(
                                         color = Color.White,
                                         fontWeight = FontWeight.SemiBold
                                     )
-                                    Text(
-                                        text = if (isSynced) {
-                                            tr(lang, "Synced", "இணைந்தது")
-                                        } else {
-                                            tr(lang, "Queued Offline", "ஆஃப்லைனில் உள்ளது")
-                                        },
-                                        style = MaterialTheme.typography.labelMedium,
-                                        color = if (isSynced) CashEmerald else SafetyAmber
-                                    )
+                                    if (!isSynced) {
+                                        Text(
+                                            text = tr(lang, "Offline", "ஆஃப்லைன்"),
+                                            style = MaterialTheme.typography.labelMedium,
+                                            color = SafetyAmber
+                                        )
+                                    }
                                 }
                                 Text(
                                     text = "${tr(lang, "In", "உள்ளே")}: ${timeFmt.format(Date(log.entryTimestamp))}",
@@ -962,15 +935,15 @@ private fun WorkerParkingLogScreen(
                 ) {
                     Column(modifier = Modifier.weight(1f)) {
                         Text(
-                            text = tr(lang, "Passes & Customer Credit", "பாஸ் & வாடிக்கையாளர் கடன்"),
-                            style = MaterialTheme.typography.headlineMedium,
+                            text = tr(lang, "Passes & Credit", "பாஸ் & கடன்"),
+                            style = MaterialTheme.typography.titleLarge,
                             color = Color.White
                         )
                         Text(
                             text = tr(
                                 lang,
-                                "Weekly: ₹${rateConfig.weeklyPassRate.toInt()} • Monthly: ₹${rateConfig.monthlyPassRate.toInt()}",
-                                "வாரம்: ₹${rateConfig.weeklyPassRate.toInt()} • மாதம்: ₹${rateConfig.monthlyPassRate.toInt()}"
+                                "Weekly ₹${rateConfig.weeklyPassRate.toInt()} • Monthly ₹${rateConfig.monthlyPassRate.toInt()}",
+                                "வாரம் ₹${rateConfig.weeklyPassRate.toInt()} • மாதம் ₹${rateConfig.monthlyPassRate.toInt()}"
                             ),
                             style = MaterialTheme.typography.bodyMedium,
                             color = MutedSteel
@@ -994,8 +967,8 @@ private fun WorkerParkingLogScreen(
                 Text(
                     text = tr(
                         lang,
-                        "Unpaid 'Pay Tomorrow' Credits (${activeCredits.size})",
-                        "நிலுவையில் உள்ள கடன் / நாளை தருகிறேன் (${activeCredits.size})"
+                        "Pending Credit (${activeCredits.size})",
+                        "நிலுவை கடன் (${activeCredits.size})"
                     ),
                     style = MaterialTheme.typography.titleMedium,
                     color = if (activeCredits.isEmpty()) MutedSteel else DebtCrimson

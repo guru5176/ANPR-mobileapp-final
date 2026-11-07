@@ -135,18 +135,18 @@ fun OwnerDashboardScreen(
     LazyColumn(
         modifier = Modifier
             .fillMaxSize()
-            .padding(horizontal = 16.dp, vertical = 12.dp),
-        verticalArrangement = Arrangement.spacedBy(12.dp)
+            .padding(horizontal = 16.dp, vertical = 14.dp),
+        verticalArrangement = Arrangement.spacedBy(16.dp)
     ) {
         // Offline Sync Queue Banner (visible when offline or when items are queued in Room)
         if (!isOnline || pendingSyncCount > 0) {
             item {
                 Surface(
                     color = ElevatedSlate,
-                    shape = RoundedCornerShape(12.dp),
+                    shape = RoundedCornerShape(14.dp),
                     border = BorderStroke(
                         1.dp,
-                        if (pendingSyncCount > 0) SafetyAmber.copy(alpha = 0.7f) else DebtCrimson.copy(alpha = 0.7f)
+                        if (pendingSyncCount > 0) SafetyAmber.copy(alpha = 0.6f) else DebtCrimson.copy(alpha = 0.6f)
                     ),
                     modifier = Modifier
                         .fillMaxWidth()
@@ -155,26 +155,20 @@ fun OwnerDashboardScreen(
                     Row(
                         modifier = Modifier
                             .fillMaxWidth()
-                            .padding(horizontal = 14.dp, vertical = 10.dp),
+                            .padding(horizontal = 16.dp, vertical = 12.dp),
                         horizontalArrangement = Arrangement.SpaceBetween,
                         verticalAlignment = Alignment.CenterVertically
                     ) {
-                        Column(modifier = Modifier.weight(1f)) {
-                            Text(
-                                text = if (!isOnline) {
-                                    "Offline Mode • Room Sync Queue Active"
-                                } else {
-                                    "Sync Queue: $pendingSyncCount record(s) pending upload"
-                                },
-                                style = MaterialTheme.typography.titleMedium,
-                                color = if (pendingSyncCount > 0) SafetyAmber else DebtCrimson
-                            )
-                            Text(
-                                text = "Vehicle logs are safely stored in Room and auto-upload to Firestore once connection restores.",
-                                style = MaterialTheme.typography.labelMedium,
-                                color = MutedSteel
-                            )
-                        }
+                        Text(
+                            text = if (!isOnline) {
+                                tr(lang, "Offline Mode • Saved Locally", "ஆஃப்லைன் முறை • லோக்கல் பதிவு")
+                            } else {
+                                tr(lang, "$pendingSyncCount Pending Cloud Sync", "$pendingSyncCount பதிவுகள் நிலுவையில்")
+                            },
+                            style = MaterialTheme.typography.titleMedium,
+                            color = if (pendingSyncCount > 0) SafetyAmber else DebtCrimson,
+                            modifier = Modifier.weight(1f)
+                        )
                         Spacer(modifier = Modifier.width(8.dp))
                         OutlinedButton(
                             onClick = { viewModel.syncOfflineQueueNow(silent = false) },
@@ -184,7 +178,7 @@ fun OwnerDashboardScreen(
                             modifier = Modifier.testTag("owner_sync_now_button")
                         ) {
                             Text(
-                                text = if (isSyncingQueue) "Syncing..." else "Sync Now",
+                                text = if (isSyncingQueue) tr(lang, "Syncing...", "இணைக்கிறது...") else tr(lang, "Sync Now", "இப்போது இணை"),
                                 style = MaterialTheme.typography.labelLarge
                             )
                         }
@@ -192,28 +186,29 @@ fun OwnerDashboardScreen(
                 }
             }
         }
+
         // Segmented Owner View Switcher (Shift Ledger vs Audit Reports)
         item {
             Surface(
                 color = ElevatedSlate,
-                shape = RoundedCornerShape(12.dp),
+                shape = RoundedCornerShape(14.dp),
                 border = BorderStroke(1.dp, CardSlateBorder),
                 modifier = Modifier.fillMaxWidth()
             ) {
                 Row(
                     modifier = Modifier
                         .fillMaxWidth()
-                        .padding(5.dp),
+                        .padding(6.dp),
                     horizontalArrangement = Arrangement.spacedBy(6.dp)
                 ) {
                     val isLedger = activeSection == OwnerSection.LEDGER
                     Surface(
                         color = if (isLedger) SafetyAmber else Color.Transparent,
-                        shape = RoundedCornerShape(8.dp),
+                        shape = RoundedCornerShape(10.dp),
                         modifier = Modifier
                             .weight(1f)
-                            .height(38.dp)
-                            .clip(RoundedCornerShape(8.dp))
+                            .height(42.dp)
+                            .clip(RoundedCornerShape(10.dp))
                             .clickable { activeSection = OwnerSection.LEDGER }
                             .testTag("owner_section_ledger_tab")
                     ) {
@@ -239,11 +234,11 @@ fun OwnerDashboardScreen(
 
                     Surface(
                         color = if (!isLedger) SafetyAmber else Color.Transparent,
-                        shape = RoundedCornerShape(8.dp),
+                        shape = RoundedCornerShape(10.dp),
                         modifier = Modifier
                             .weight(1f)
-                            .height(38.dp)
-                            .clip(RoundedCornerShape(8.dp))
+                            .height(42.dp)
+                            .clip(RoundedCornerShape(10.dp))
                             .clickable { activeSection = OwnerSection.AUDIT_REPORTS }
                             .testTag("owner_section_reports_tab")
                     ) {
@@ -277,14 +272,15 @@ fun OwnerDashboardScreen(
                     modifier = Modifier
                         .fillMaxWidth()
                         .testTag("expected_cash_in_drawer_card"),
-                    shape = RoundedCornerShape(14.dp),
+                    shape = RoundedCornerShape(16.dp),
                     colors = CardDefaults.cardColors(containerColor = CashEmeraldDim),
                     border = BorderStroke(1.dp, CashEmerald)
                 ) {
                     Column(
                         modifier = Modifier
                             .fillMaxWidth()
-                            .padding(16.dp)
+                            .padding(18.dp),
+                        verticalArrangement = Arrangement.spacedBy(8.dp)
                     ) {
                         Row(
                             modifier = Modifier.fillMaxWidth(),
@@ -297,7 +293,7 @@ fun OwnerDashboardScreen(
                                     style = MaterialTheme.typography.labelLarge,
                                     color = CashEmerald
                                 )
-                                Spacer(modifier = Modifier.height(2.dp))
+                                Spacer(modifier = Modifier.height(4.dp))
                                 Text(
                                     text = "₹${summary.expectedCashInDrawer.toInt()}",
                                     style = MaterialTheme.typography.displayLarge,
@@ -309,6 +305,7 @@ fun OwnerDashboardScreen(
                                     onClick = { showRateSettingsDialog = true },
                                     border = BorderStroke(1.dp, SafetyAmber),
                                     colors = ButtonDefaults.outlinedButtonColors(contentColor = SafetyAmber),
+                                    shape = RoundedCornerShape(10.dp),
                                     modifier = Modifier.testTag("edit_tariff_rates_button")
                                 ) {
                                     Icon(
@@ -317,17 +314,16 @@ fun OwnerDashboardScreen(
                                         modifier = Modifier.size(16.dp)
                                     )
                                     Spacer(modifier = Modifier.width(6.dp))
-                                    Text(tr(lang, "Tariff Rates", "கட்டண விகிதம்"), style = MaterialTheme.typography.labelLarge)
+                                    Text(tr(lang, "Rates", "கட்டணம்"), style = MaterialTheme.typography.labelLarge)
                                 }
                             }
                         }
 
-                        Spacer(modifier = Modifier.height(6.dp))
                         Text(
                             text = tr(
                                 lang,
-                                "Cash Exits (₹${summary.cashFromExitsToday.toInt()}) + Cash Passes (₹${summary.cashFromPassesToday.toInt()}). Excludes UPI & Credits.",
-                                "ரொக்க வெளியேற்றம் (₹${summary.cashFromExitsToday.toInt()}) + ரொக்க பாஸ் (₹${summary.cashFromPassesToday.toInt()}). UPI சேர்க்கப்படவில்லை."
+                                "Exits ₹${summary.cashFromExitsToday.toInt()} + Passes ₹${summary.cashFromPassesToday.toInt()} (Physical Cash Only)",
+                                "வெளியேற்றம் ₹${summary.cashFromExitsToday.toInt()} + பாஸ் ₹${summary.cashFromPassesToday.toInt()} (ரொக்கம் மட்டும்)"
                             ),
                             style = MaterialTheme.typography.bodyMedium,
                             color = Color.White.copy(alpha = 0.85f)
@@ -340,13 +336,13 @@ fun OwnerDashboardScreen(
             item {
                 Row(
                     modifier = Modifier.fillMaxWidth(),
-                    horizontalArrangement = Arrangement.spacedBy(10.dp)
+                    horizontalArrangement = Arrangement.spacedBy(12.dp)
                 ) {
                     MetricAuditCard(
                         modifier = Modifier.weight(1f),
                         title = tr(lang, "Bikes Inside", "உள்ளே உள்ளவை"),
                         value = "${summary.totalBikesInside}",
-                        subtitle = tr(lang, "Currently parked", "தற்போது நிற்பவை"),
+                        subtitle = tr(lang, "Parked now", "தற்போது நிற்பவை"),
                         accentColor = SafetyAmber,
                         icon = Icons.AutoMirrored.Filled.DirectionsBike
                     )
@@ -354,7 +350,7 @@ fun OwnerDashboardScreen(
                         modifier = Modifier.weight(1f),
                         title = tr(lang, "Exits Today", "இன்று வெளியேறியவை"),
                         value = "${summary.totalExitsToday}",
-                        subtitle = tr(lang, "Completed stays", "முடிந்த பதிவுகள்"),
+                        subtitle = tr(lang, "Completed", "முடிந்தவை"),
                         accentColor = Color.White,
                         icon = Icons.Default.History
                     )
@@ -364,13 +360,13 @@ fun OwnerDashboardScreen(
             item {
                 Row(
                     modifier = Modifier.fillMaxWidth(),
-                    horizontalArrangement = Arrangement.spacedBy(10.dp)
+                    horizontalArrangement = Arrangement.spacedBy(12.dp)
                 ) {
                     MetricAuditCard(
                         modifier = Modifier.weight(1f),
-                        title = tr(lang, "Digital UPI Today", "இன்றைய UPI"),
+                        title = tr(lang, "UPI Today", "இன்றைய UPI"),
                         value = "₹${summary.totalUpiToday.toInt()}",
-                        subtitle = "Exits ₹${summary.upiFromExitsToday.toInt()} • Passes ₹${summary.upiFromPassesToday.toInt()}",
+                        subtitle = tr(lang, "Digital payments", "ஆன்லைன் பணம்"),
                         accentColor = UpiCyan,
                         icon = Icons.Default.QrCode
                     )
@@ -378,7 +374,7 @@ fun OwnerDashboardScreen(
                         modifier = Modifier.weight(1f),
                         title = tr(lang, "Pending Credit", "நிலுவை கடன்"),
                         value = "₹${summary.totalPendingCreditAmount.toInt()}",
-                        subtitle = "${summary.activeCreditAccountsCount} ${tr(lang, "unpaid vehicle(s)", "வாகனங்கள்")}",
+                        subtitle = "${summary.activeCreditAccountsCount} ${tr(lang, "vehicles", "வாகனங்கள்")}",
                         accentColor = DebtCrimson,
                         icon = Icons.Default.Warning
                     )
@@ -389,31 +385,35 @@ fun OwnerDashboardScreen(
             item {
                 Card(
                     modifier = Modifier.fillMaxWidth(),
-                    shape = RoundedCornerShape(12.dp),
+                    shape = RoundedCornerShape(14.dp),
                     colors = CardDefaults.cardColors(containerColor = ElevatedSlate),
                     border = BorderStroke(1.dp, CardSlateBorder)
                 ) {
                     Row(
                         modifier = Modifier
                             .fillMaxWidth()
-                            .padding(14.dp),
+                            .padding(16.dp),
                         horizontalArrangement = Arrangement.SpaceBetween,
                         verticalAlignment = Alignment.CenterVertically
                     ) {
-                        Column {
+                        Column(verticalArrangement = Arrangement.spacedBy(2.dp)) {
                             Text(
-                                text = "Active Stand Tariffs",
+                                text = tr(lang, "Active Tariffs", "தற்போதைய கட்டண விகிதம்"),
                                 style = MaterialTheme.typography.titleMedium,
                                 color = Color.White
                             )
                             Text(
-                                text = "Daily: ₹${rateConfig.dailyRate.toInt()}/24h • Weekly: ₹${rateConfig.weeklyPassRate.toInt()} • Monthly: ₹${rateConfig.monthlyPassRate.toInt()}",
+                                text = tr(
+                                    lang,
+                                    "₹${rateConfig.dailyRate.toInt()}/24h • Weekly ₹${rateConfig.weeklyPassRate.toInt()} • Monthly ₹${rateConfig.monthlyPassRate.toInt()}",
+                                    "₹${rateConfig.dailyRate.toInt()}/நாள் • வாரம் ₹${rateConfig.weeklyPassRate.toInt()} • மாதம் ₹${rateConfig.monthlyPassRate.toInt()}"
+                                ),
                                 style = MaterialTheme.typography.bodyMedium,
                                 color = MutedSteel
                             )
                         }
                         Text(
-                            text = "${summary.activePassesCount} passes",
+                            text = "${summary.activePassesCount} ${tr(lang, "passes", "பாஸ்கள்")}",
                             style = MaterialTheme.typography.labelLarge,
                             color = CashEmerald
                         )
@@ -424,7 +424,11 @@ fun OwnerDashboardScreen(
             // 4. Active Unpaid "Pay Tomorrow" Credits Section
             item {
                 Text(
-                    text = "Pending 'Pay Tomorrow' Credits (${openCredits.size})",
+                    text = tr(
+                        lang,
+                        "Pending Credits (${openCredits.size})",
+                        "நிலுவையில் உள்ள கடன் (${openCredits.size})"
+                    ),
                     style = MaterialTheme.typography.titleMedium,
                     color = if (openCredits.isEmpty()) MutedSteel else DebtCrimson
                 )
@@ -434,15 +438,15 @@ fun OwnerDashboardScreen(
                 item {
                     Surface(
                         color = ElevatedSlate,
-                        shape = RoundedCornerShape(12.dp),
+                        shape = RoundedCornerShape(14.dp),
                         border = BorderStroke(1.dp, CardSlateBorder),
                         modifier = Modifier.fillMaxWidth()
                     ) {
                         Text(
-                            text = "All customer credit accounts are settled.",
+                            text = tr(lang, "All customer credit accounts are settled.", "நிலுவையில் வாடிக்கையாளர் கடன் எதுவும் இல்லை."),
                             style = MaterialTheme.typography.bodyMedium,
                             color = MutedSteel,
-                            modifier = Modifier.padding(14.dp)
+                            modifier = Modifier.padding(16.dp)
                         )
                     }
                 }
