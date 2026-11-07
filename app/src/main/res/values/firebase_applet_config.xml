@@ -1,0 +1,5 @@
+<?xml version="1.0" encoding="utf-8" standalone="no"?>
+<resources>
+    <string name="firestore_database_id" translatable="false">ai-studio-android-motovaul-dd0d95e3-0ca7-4f9d-905a-cec52680b334</string>
+    <string name="recaptcha_site_key" translatable="false">6LfVeREuAAAAAOyxlR4lzVfMXWyhZ8iKsZ57rWg2</string>
+</resources>

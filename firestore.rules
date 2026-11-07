@@ -1,0 +1,217 @@
+rules_version = '2';
+service cloud.firestore {
+  match /databases/{database}/documents {
+    // Pillar 1: Global Default-Deny Safety Net
+    match /{document=**} {
+      allow read, write: if false;
+    }
+
+    // Global Hardened Helpers
+    function isSignedIn() {
+      return request.auth != null;
+    }
+
+    function isOwner(userId) {
+      return isSignedIn() && request.auth.uid == userId;
+    }
+
+    function isValidId(id) {
+      return id is string && id.size() >= 1 && id.size() <= 128 && id.matches('^[a-zA-Z0-9_\\-]+$');
+    }
+
+    function incoming() {
+      return request.resource.data;
+    }
+
+    function existing() {
+      return resource.data;
+    }
+
+    function isNumber(val) {
+      return val is int || val is float;
+    }
+
+    // Validation Helper 1: VehicleLog
+    function isValidVehicleLog(data) {
+      return data.userId is string && data.userId == request.auth.uid && data.userId.size() >= 1 && data.userId.size() <= 128 &&
+             data.plateNumber is string && data.plateNumber.size() >= 4 && data.plateNumber.size() <= 20 &&
+             data.entryTimestamp is int && data.entryTimestamp > 0 &&
+             (!('exitTimestamp' in data) || data.exitTimestamp == null || (data.exitTimestamp is int && data.exitTimestamp >= data.entryTimestamp)) &&
+             data.photoPath is string && data.photoPath.size() <= 500 &&
+             data.status is string && data.status in ['INSIDE', 'EXITED'] &&
+             data.paymentStatus is string && data.paymentStatus in ['PENDING', 'PAID_CASH', 'PAID_UPI', 'UNPAID_CREDIT', 'PASS_COVERED'] &&
+             data.daysCharged is int && data.daysCharged >= 0 && data.daysCharged <= 3650 &&
+             isNumber(data.baseFee) && data.baseFee >= 0 &&
+             isNumber(data.previousCreditAdded) && data.previousCreditAdded >= 0 &&
+             isNumber(data.totalAmountDue) && data.totalAmountDue >= 0 &&
+             isNumber(data.amountCollected) && data.amountCollected >= 0 &&
+             data.workerName is string && data.workerName.size() >= 1 && data.workerName.size() <= 100 &&
+             (!('notes' in data) || data.notes == null || (data.notes is string && data.notes.size() <= 500)) &&
+             data.createdAt is timestamp && data.createdAt <= request.time &&
+             data.updatedAt is timestamp && data.updatedAt <= request.time;
+    }
+
+    // Validation Helper 2: Pass
+    function isValidPass(data) {
+      return data.userId is string && data.userId == request.auth.uid && data.userId.size() >= 1 && data.userId.size() <= 128 &&
+             data.plateNumber is string && data.plateNumber.size() >= 4 && data.plateNumber.size() <= 20 &&
+             data.passType is string && data.passType in ['WEEKLY_PASS', 'MONTHLY_PASS'] &&
+             data.startDate is int && data.startDate > 0 &&
+             data.expiryDate is int && data.expiryDate >= data.startDate &&
+             isNumber(data.amountPaid) && data.amountPaid >= 0 &&
+             data.paymentMode is string && data.paymentMode in ['PAID_CASH', 'PAID_UPI'] &&
+             data.createdAt is timestamp && data.createdAt <= request.time &&
+             data.updatedAt is timestamp && data.updatedAt <= request.time;
+    }
+
+    // Validation Helper 3: Credit
+    function isValidCredit(data) {
+      return data.userId is string && data.userId == request.auth.uid && data.userId.size() >= 1 && data.userId.size() <= 128 &&
+             data.plateNumber is string && data.plateNumber.size() >= 4 && data.plateNumber.size() <= 20 &&
+             isNumber(data.pendingAmount) && data.pendingAmount >= 0 &&
+             data.lastUnpaidTimestamp is int && data.lastUnpaidTimestamp > 0 &&
+             data.notes is string && data.notes.size() <= 500 &&
+             data.isSettled is bool &&
+             data.createdAt is timestamp && data.createdAt <= request.time &&
+             data.updatedAt is timestamp && data.updatedAt <= request.time;
+    }
+
+    // Validation Helper 4: RateConfig
+    function isValidRateConfig(data) {
+      return data.userId is string && data.userId == request.auth.uid && data.userId.size() >= 1 && data.userId.size() <= 128 &&
+             isNumber(data.dailyRate) && data.dailyRate > 0 && data.dailyRate <= 10000 &&
+             isNumber(data.weeklyPassRate) && data.weeklyPassRate >= 0 && data.weeklyPassRate <= 50000 &&
+             isNumber(data.monthlyPassRate) && data.monthlyPassRate >= 0 && data.monthlyPassRate <= 100000 &&
+             data.ownerPin is string && data.ownerPin.size() >= 4 && data.ownerPin.size() <= 8 &&
+             isNumber(data.lowLightThreshold) && data.lowLightThreshold >= 5 && data.lowLightThreshold <= 200 &&
+             data.createdAt is timestamp && data.createdAt <= request.time &&
+             data.updatedAt is timestamp && data.updatedAt <= request.time;
+    }
+
+    match /users/{userId} {
+      // 1. Vehicle Logs Collection
+      match /vehicle_logs/{logId} {
+        allow get: if isOwner(userId) && isValidId(logId) && (resource == null || existing().userId == request.auth.uid);
+        allow list: if isOwner(userId);
+
+        allow create: if isOwner(userId) &&
+                         isValidId(logId) &&
+                         incoming().keys().hasAll([
+                           'userId', 'plateNumber', 'entryTimestamp', 'photoPath',
+                           'status', 'paymentStatus', 'daysCharged', 'baseFee',
+                           'previousCreditAdded', 'totalAmountDue', 'amountCollected',
+                           'workerName', 'createdAt', 'updatedAt'
+                         ]) &&
+                         incoming().keys().hasOnly([
+                           'userId', 'plateNumber', 'entryTimestamp', 'exitTimestamp',
+                           'photoPath', 'status', 'paymentStatus', 'daysCharged',
+                           'baseFee', 'previousCreditAdded', 'totalAmountDue',
+                           'amountCollected', 'workerName', 'notes', 'createdAt', 'updatedAt'
+                         ]) &&
+                         isValidVehicleLog(incoming());
+
+        allow update: if isOwner(userId) &&
+                         isValidId(logId) &&
+                         isValidVehicleLog(incoming()) &&
+                         incoming().userId == existing().userId &&
+                         incoming().plateNumber == existing().plateNumber &&
+                         incoming().entryTimestamp == existing().entryTimestamp &&
+                         incoming().createdAt == existing().createdAt &&
+                         incoming().diff(existing()).affectedKeys().hasOnly([
+                           'exitTimestamp', 'photoPath', 'status', 'paymentStatus',
+                           'daysCharged', 'baseFee', 'previousCreditAdded',
+                           'totalAmountDue', 'amountCollected', 'workerName', 'notes', 'updatedAt'
+                         ]);
+
+        allow delete: if isOwner(userId) && isValidId(logId) && existing().userId == request.auth.uid;
+      }
+
+      // 2. Passes Collection
+      match /passes/{passId} {
+        allow get: if isOwner(userId) && isValidId(passId) && (resource == null || existing().userId == request.auth.uid);
+        allow list: if isOwner(userId);
+
+        allow create: if isOwner(userId) &&
+                         isValidId(passId) &&
+                         incoming().keys().hasAll([
+                           'userId', 'plateNumber', 'passType', 'startDate',
+                           'expiryDate', 'amountPaid', 'paymentMode', 'createdAt', 'updatedAt'
+                         ]) &&
+                         incoming().keys().hasOnly([
+                           'userId', 'plateNumber', 'passType', 'startDate',
+                           'expiryDate', 'amountPaid', 'paymentMode', 'createdAt', 'updatedAt'
+                         ]) &&
+                         isValidPass(incoming());
+
+        allow update: if isOwner(userId) &&
+                         isValidId(passId) &&
+                         isValidPass(incoming()) &&
+                         incoming().userId == existing().userId &&
+                         incoming().plateNumber == existing().plateNumber &&
+                         incoming().diff(existing()).affectedKeys().hasOnly([
+                           'passType', 'startDate', 'expiryDate', 'amountPaid', 'paymentMode', 'createdAt', 'updatedAt'
+                         ]);
+
+        allow delete: if isOwner(userId) && isValidId(passId) && existing().userId == request.auth.uid;
+      }
+
+      // 3. Credits ("Pay Tomorrow" / Udhaar) Collection
+      match /credits/{creditId} {
+        allow get: if isOwner(userId) && isValidId(creditId) && (resource == null || existing().userId == request.auth.uid);
+        allow list: if isOwner(userId);
+
+        allow create: if isOwner(userId) &&
+                         isValidId(creditId) &&
+                         incoming().keys().hasAll([
+                           'userId', 'plateNumber', 'pendingAmount',
+                           'lastUnpaidTimestamp', 'notes', 'isSettled', 'createdAt', 'updatedAt'
+                         ]) &&
+                         incoming().keys().hasOnly([
+                           'userId', 'plateNumber', 'pendingAmount',
+                           'lastUnpaidTimestamp', 'notes', 'isSettled', 'createdAt', 'updatedAt'
+                         ]) &&
+                         isValidCredit(incoming());
+
+        allow update: if isOwner(userId) &&
+                         isValidId(creditId) &&
+                         isValidCredit(incoming()) &&
+                         incoming().userId == existing().userId &&
+                         incoming().plateNumber == existing().plateNumber &&
+                         incoming().diff(existing()).affectedKeys().hasOnly([
+                           'pendingAmount', 'lastUnpaidTimestamp', 'notes', 'isSettled', 'createdAt', 'updatedAt'
+                         ]);
+
+        allow delete: if isOwner(userId) && isValidId(creditId) && existing().userId == request.auth.uid;
+      }
+
+      // 4. Rate Configuration Collection
+      match /config/{configId} {
+        allow get: if isOwner(userId) && isValidId(configId) && (resource == null || existing().userId == request.auth.uid);
+        allow list: if isOwner(userId);
+
+        allow create: if isOwner(userId) &&
+                         isValidId(configId) &&
+                         incoming().keys().hasAll([
+                           'userId', 'dailyRate', 'weeklyPassRate', 'monthlyPassRate',
+                           'ownerPin', 'lowLightThreshold', 'createdAt', 'updatedAt'
+                         ]) &&
+                         incoming().keys().hasOnly([
+                           'userId', 'dailyRate', 'weeklyPassRate', 'monthlyPassRate',
+                           'ownerPin', 'lowLightThreshold', 'createdAt', 'updatedAt'
+                         ]) &&
+                         isValidRateConfig(incoming());
+
+        allow update: if isOwner(userId) &&
+                         isValidId(configId) &&
+                         isValidRateConfig(incoming()) &&
+                         incoming().userId == existing().userId &&
+                         incoming().diff(existing()).affectedKeys().hasOnly([
+                           'dailyRate', 'weeklyPassRate', 'monthlyPassRate',
+                           'ownerPin', 'lowLightThreshold', 'createdAt', 'updatedAt'
+                         ]);
+
+        allow delete: if isOwner(userId) && isValidId(configId) && existing().userId == request.auth.uid;
+      }
+    }
+  }
+}

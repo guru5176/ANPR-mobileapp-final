@@ -1,0 +1,273 @@
+{
+  "entities": {
+    "VehicleLog": {
+      "title": "VehicleLog",
+      "description": "Represents a two-wheeler parking entry and exit transaction with ANPR plate, photo proof, duration math, and payment audit status.",
+      "type": "object",
+      "properties": {
+        "userId": {
+          "type": "string",
+          "description": "UID of the authenticated parking stand account."
+        },
+        "plateNumber": {
+          "type": "string",
+          "description": "Normalized uppercase Indian vehicle registration number (e.g. TN39AB1234)."
+        },
+        "entryTimestamp": {
+          "type": "integer",
+          "description": "Epoch milliseconds when the vehicle entered the parking stand."
+        },
+        "exitTimestamp": {
+          "type": "integer",
+          "description": "Optional epoch milliseconds when the vehicle exited the stand."
+        },
+        "photoPath": {
+          "type": "string",
+          "description": "Local file path to compressed snapshot with burned-in timestamp."
+        },
+        "status": {
+          "type": "string",
+          "enum": ["INSIDE", "EXITED"],
+          "description": "Current physical status of the parked two-wheeler."
+        },
+        "paymentStatus": {
+          "type": "string",
+          "enum": ["PENDING", "PAID_CASH", "PAID_UPI", "UNPAID_CREDIT", "PASS_COVERED"],
+          "description": "Settlement method for audit and cash drawer calculation."
+        },
+        "daysCharged": {
+          "type": "integer",
+          "description": "Number of 24-hour rolling blocks charged."
+        },
+        "baseFee": {
+          "type": "number",
+          "description": "Base parking fee calculated for this stay."
+        },
+        "previousCreditAdded": {
+          "type": "number",
+          "description": "Previous unpaid credit balance added to this bill."
+        },
+        "totalAmountDue": {
+          "type": "number",
+          "description": "Total non-negotiable fee due (baseFee + previousCreditAdded)."
+        },
+        "amountCollected": {
+          "type": "number",
+          "description": "Actual amount collected upon exit."
+        },
+        "workerName": {
+          "type": "string",
+          "description": "Name or role identifier of the operator who logged the entry."
+        },
+        "notes": {
+          "type": "string",
+          "description": "Optional audit or AI vehicle condition notes."
+        },
+        "createdAt": {
+          "type": "string",
+          "format": "date-time",
+          "description": "Server timestamp of creation (FieldValue.serverTimestamp())."
+        },
+        "updatedAt": {
+          "type": "string",
+          "format": "date-time",
+          "description": "Server timestamp of last update (FieldValue.serverTimestamp())."
+        }
+      },
+      "required": [
+        "userId",
+        "plateNumber",
+        "entryTimestamp",
+        "photoPath",
+        "status",
+        "paymentStatus",
+        "daysCharged",
+        "baseFee",
+        "previousCreditAdded",
+        "totalAmountDue",
+        "amountCollected",
+        "workerName",
+        "createdAt",
+        "updatedAt"
+      ]
+    },
+    "Pass": {
+      "title": "Pass",
+      "description": "Represents an active or expired Weekly or Monthly parking pass linked to a license plate.",
+      "type": "object",
+      "properties": {
+        "userId": {
+          "type": "string",
+          "description": "UID of the authenticated parking stand account."
+        },
+        "plateNumber": {
+          "type": "string",
+          "description": "Normalized uppercase Indian vehicle registration number."
+        },
+        "passType": {
+          "type": "string",
+          "enum": ["WEEKLY_PASS", "MONTHLY_PASS"],
+          "description": "Pass duration tier."
+        },
+        "startDate": {
+          "type": "integer",
+          "description": "Start timestamp in epoch milliseconds."
+        },
+        "expiryDate": {
+          "type": "integer",
+          "description": "Expiry timestamp in epoch milliseconds."
+        },
+        "amountPaid": {
+          "type": "number",
+          "description": "Pass purchase fee collected."
+        },
+        "paymentMode": {
+          "type": "string",
+          "enum": ["PAID_CASH", "PAID_UPI"],
+          "description": "How the pass was paid for (PAID_CASH increments expected cash in drawer)."
+        },
+        "createdAt": {
+          "type": "string",
+          "format": "date-time",
+          "description": "Server timestamp of creation (FieldValue.serverTimestamp())."
+        },
+        "updatedAt": {
+          "type": "string",
+          "format": "date-time",
+          "description": "Server timestamp of last update (FieldValue.serverTimestamp())."
+        }
+      },
+      "required": [
+        "userId",
+        "plateNumber",
+        "passType",
+        "startDate",
+        "expiryDate",
+        "amountPaid",
+        "paymentMode",
+        "createdAt",
+        "updatedAt"
+      ]
+    },
+    "Credit": {
+      "title": "Credit",
+      "description": "Tracks unpaid 'Pay Tomorrow' (Udhaar) credit balances linked to a vehicle license plate.",
+      "type": "object",
+      "properties": {
+        "userId": {
+          "type": "string",
+          "description": "UID of the authenticated parking stand account."
+        },
+        "plateNumber": {
+          "type": "string",
+          "description": "Normalized uppercase Indian vehicle registration number."
+        },
+        "pendingAmount": {
+          "type": "number",
+          "description": "Outstanding rupee balance owed by this vehicle."
+        },
+        "lastUnpaidTimestamp": {
+          "type": "integer",
+          "description": "Epoch milliseconds when the credit was incurred."
+        },
+        "notes": {
+          "type": "string",
+          "description": "Context notes for the pending debt."
+        },
+        "isSettled": {
+          "type": "boolean",
+          "description": "Whether the pending debt has been settled."
+        },
+        "createdAt": {
+          "type": "string",
+          "format": "date-time",
+          "description": "Server timestamp of creation (FieldValue.serverTimestamp())."
+        },
+        "updatedAt": {
+          "type": "string",
+          "format": "date-time",
+          "description": "Server timestamp of last update (FieldValue.serverTimestamp())."
+        }
+      },
+      "required": [
+        "userId",
+        "plateNumber",
+        "pendingAmount",
+        "lastUnpaidTimestamp",
+        "notes",
+        "isSettled",
+        "createdAt",
+        "updatedAt"
+      ]
+    },
+    "RateConfig": {
+      "title": "RateConfig",
+      "description": "Owner-controlled tariff rates, security PIN, and auto-torch luminosity threshold.",
+      "type": "object",
+      "properties": {
+        "userId": {
+          "type": "string",
+          "description": "UID of the authenticated parking stand account."
+        },
+        "dailyRate": {
+          "type": "number",
+          "description": "Base rate per 24-hour block in INR (default 20)."
+        },
+        "weeklyPassRate": {
+          "type": "number",
+          "description": "7-day pass rate in INR."
+        },
+        "monthlyPassRate": {
+          "type": "number",
+          "description": "30-day pass rate in INR."
+        },
+        "ownerPin": {
+          "type": "string",
+          "description": "4-to-8 digit PIN protecting Owner mode and tariff edits."
+        },
+        "lowLightThreshold": {
+          "type": "number",
+          "description": "Average Y-plane pixel luminance (5..200) below which auto-torch triggers."
+        },
+        "createdAt": {
+          "type": "string",
+          "format": "date-time",
+          "description": "Server timestamp of creation (FieldValue.serverTimestamp())."
+        },
+        "updatedAt": {
+          "type": "string",
+          "format": "date-time",
+          "description": "Server timestamp of last update (FieldValue.serverTimestamp())."
+        }
+      },
+      "required": [
+        "userId",
+        "dailyRate",
+        "weeklyPassRate",
+        "monthlyPassRate",
+        "ownerPin",
+        "lowLightThreshold",
+        "createdAt",
+        "updatedAt"
+      ]
+    }
+  },
+  "firestore": {
+    "/users/{userId}/vehicle_logs/{logId}": {
+      "schema": { "$ref": "#/entities/VehicleLog" },
+      "description": "Real-time synced vehicle entry and exit logs for the parking stand."
+    },
+    "/users/{userId}/passes/{passId}": {
+      "schema": { "$ref": "#/entities/Pass" },
+      "description": "Active and historical Weekly and Monthly vehicle passes."
+    },
+    "/users/{userId}/credits/{creditId}": {
+      "schema": { "$ref": "#/entities/Credit" },
+      "description": "Pay Tomorrow (Udhaar) credit ledger per license plate."
+    },
+    "/users/{userId}/config/{configId}": {
+      "schema": { "$ref": "#/entities/RateConfig" },
+      "description": "Tariff rate configuration and Owner PIN."
+    }
+  }
+}

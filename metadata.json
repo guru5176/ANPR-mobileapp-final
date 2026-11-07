@@ -1,0 +1,6 @@
+{
+  "name": "MotoVault ANPR",
+  "description": "Two-role commercial two-wheeler parking management, ANPR scanner, pass & credit ledger, and real-time anti-theft cash drawer audit.",
+  "requestFramePermissions": [],
+  "majorCapabilities": ["MAJOR_CAPABILITY_SERVER_SIDE_GEMINI_API"]
+}

@@ -1,0 +1,6 @@
+{
+  "summary": "Comprehensive architectural and UX implementation plan for MotoVault ANPR, a two-role (Worker & Owner) Two-Wheeler Parking Management & ANPR Android application built with Jetpack Compose, CameraX, TFLite + ML Kit OCR, Room + Firebase Firestore real-time sync, Google Sign-In, and Firebase AI Logic (Gemini).",
+  "updatedAt": "2026-11-05T13:29:39.030423710Z",
+  "requestFeedback": true,
+  "userFacing": true
+}

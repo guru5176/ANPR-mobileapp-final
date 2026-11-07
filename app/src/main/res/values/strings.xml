@@ -1,0 +1,18 @@
+<resources>
+    <string name="app_name">MotoVault ANPR</string>
+    <string name="auth_title">MotoVault ANPR Terminal</string>
+    <string name="auth_subtitle">24/7 Two-Wheeler Parking Stand, ANPR &amp; Anti-Theft Cash Ledger</string>
+    <string name="sign_in_google">Sign in with Google</string>
+    <string name="role_worker">Worker Mode</string>
+    <string name="role_owner">Owner Audit</string>
+    <string name="tab_scanner">ANPR Scanner</string>
+    <string name="tab_inside">Inside Stand</string>
+    <string name="tab_passes">Passes &amp; Debt</string>
+    <string name="tab_owner">Owner Ledger</string>
+    <string name="btn_log_entry">Log Vehicle Entry</string>
+    <string name="btn_process_exit">Process Exit &amp; Bill</string>
+    <string name="btn_paid_cash">Paid - Cash</string>
+    <string name="btn_paid_upi">Paid - UPI / GPay</string>
+    <string name="btn_pay_tomorrow">Pay Tomorrow (Credit)</string>
+    <string name="owner_pin_prompt">Enter Owner Security PIN</string>
+</resources>
